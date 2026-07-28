@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Calculator</title>
+    <!-- Dynamic Web Manifest Link -->
+    <link rel="manifest" id="dynamicManifest">
+    <!-- Bulletproof classic Material Icons Round import -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        :root {
+            /* iOS Calculator Colors */
+            --calc-bg: #000000;
+            --calc-text: #ffffff;
+            --calc-btn-num: #333333;
+            --calc-btn-op: #ff9f0a;
+            --calc-btn-func: #a5a5a5;
+            --calc-btn-func-text: #000000;
+
+            /* Bible App Variables (iOS Dark Mode Default) */
+            --bg-color: #000000;
+            --surface-color: #1c1c1e;
+            --surface-color-active: #2c2c2e;
+            --text-color: #ffffff;
+            --text-muted: #8e8e93;
+            --primary-color: #0a84ff; /* iOS Blue */
+            --header-bg: #1c1c1e;
+            --border-color: #38383a;
+            --highlight: rgba(10, 132, 255, 0.3);
+            --bookmarked-bg: rgba(255, 214, 10, 0.3); /* iOS Yellow */
+            --playing-bg: rgba(128, 128, 128, 0.15);
+            
+            /* Reader Specific */
+            --reader-font-family: '-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', Arial, sans-serif;
+            --reader-font-size: 18px;
+        }
+
+        [data-theme="light"] {
+            /* Bible App Variables (iOS Light Mode) */
+            --bg-color: #f2f2f7;
+            --surface-color: #ffffff;
+            --surface-color-active: #e5e5ea;
+            --text-color: #000000;
+            --text-muted: #8e8e93;
+            --primary-color: #007aff; /* iOS Blue */
+            --header-bg: #f8f8f8;
+            --border-color: #c6c6c8;
+            --highlight: rgba(0, 122, 255, 0.3);
+            --bookmarked-bg: rgba(255, 204, 0, 0.3); /* iOS Yellow */
+            --playing-bg: rgba(128, 128, 128, 0.15);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            -webkit-tap-highlight-color: transparent; 
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+        
+        /* Base App Font is fixed to iOS standards, isolating the reader settings */
+        body { 
+            font-family: '-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', Arial, sans-serif; 
+            background-color: var(--calc-bg); 
+            overflow: hidden; 
+            font-size: 16px; 
+            color: var(--text-color); 
+        }
+        
+        /* App Containers using dvh to prevent mobile chrome cutoff */
+        #app-calculator, #app-bible { width: 100vw; height: 100vh; height: 100dvh; position: absolute; top: 0; left: 0; }
+        #app-bible { background-color: var(--bg-color); display: none; flex-direction: column; z-index: 10; }
+
+        /* Unified Fade Up Animation */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Calculator View (Centered) --- */
+        #app-calculator-wrapper { width: 100vw; height: 100vh; height: 100dvh; display: flex; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; background-color: var(--calc-bg); z-index: 10; }
+        #app-calculator { display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; width: 100%; max-width: 450px; height: 100%; max-height: 800px; margin: auto; position: relative; }
+        .calc-display { flex: 1; display: flex; align-items: flex-end; justify-content: flex-end; font-size: 5rem; font-weight: 300; color: var(--calc-text); padding-bottom: 20px; word-break: break-all; }
+        .calc-help { position: absolute; top: 20px; left: 20px; color: var(--calc-btn-num); font-size: 1.5rem; cursor: pointer; }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .calc-btn { aspect-ratio: 1; border-radius: 50%; border: none; font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: filter 0.2s; }
+        .calc-btn:active { filter: brightness(1.4); }
+        .calc-btn.zero { grid-column: span 2; aspect-ratio: auto; border-radius: 50px; justify-content: flex-start; padding-left: 30px; }
+        .btn-num { background-color: var(--calc-btn-num); color: var(--calc-text); }
+        .btn-op { background-color: var(--calc-btn-op); color: var(--calc-text); font-size: 2.5rem; }
+        .btn-func { background-color: var(--calc-btn-func); color: var(--calc-btn-func-text); }
+
+        /* Native HTML5 Dialog Overlays */
+        dialog { 
+            margin: auto; 
+            padding: 25px; 
+            border-radius: 12px; 
+            border: none;
+            background: var(--surface-color); 
+            color: var(--text-color); 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
+            max-width: 90%; 
+            width: 400px; 
+            max-height: 90vh;
+            max-height: 90dvh;
+            overflow-y: auto; 
+        }
+        dialog::backdrop {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(2px);
+        }
+        dialog[open] {
+            animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        dialog:focus-visible { outline: none; }
+        dialog h3 { margin-bottom: 15px; font-weight: 600; text-align: center; }
+        .modal-btn { margin-top: 20px; width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: 600; }
+
+        /* iOS Settings List Styling */
+        .ios-list { background: var(--bg-color); border-radius: 10px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); }
+        
+        /* FIXED ROW HEIGHT CSS */
+        .ios-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 8px 16px; /* Reduced vertical padding to prevent control bloating */
+            min-height: 52px;  /* Locks all rows to exactly 52px visually */
+            border-bottom: 1px solid var(--border-color); 
+            background: var(--surface-color); 
+            cursor: pointer; 
+            transition: background 0.2s; 
+            position: relative; 
+        }
+        .ios-row:active { background: var(--surface-color-active); }
+        .ios-row:last-child { border-bottom: none; }
+        .ios-row-label { font-size: 1rem; color: var(--text-color); flex: 1; }
+        .ios-row-control { display: flex; align-items: center; gap: 10px; }
+        
+        /* Select Dropdowns */
+        .ios-select-row { position: relative; overflow: hidden; }
+        .ios-select-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; appearance: none; -webkit-appearance: none; }
+        .ios-select-display { color: var(--text-muted); font-size: 1rem; pointer-events: none; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; text-align: right; }
+        .ios-select-wrapper { display: flex; align-items: center; color: var(--text-muted); }
+        .ios-select-wrapper .material-icons-round { font-size: 20px; margin-left: 4px; pointer-events: none; }
+        
+        /* Plus/Minus Steppers */
+        .ios-stepper { display: flex; align-items: stretch; height: 2em; background: var(--bg-color); border-radius: 0.5em; overflow: hidden; border: 1px solid var(--border-color); z-index: 20; position: relative; font-size: 1rem; }
+        .ios-stepper button { background: var(--surface-color); border: none; color: var(--primary-color); font-size: 1.2em; width: 1.875em; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .ios-stepper button:active { background: var(--surface-color-active); }
+        .ios-stepper span { width: 2.63em; font-size: 0.95em; display: flex; justify-content: center; align-items: center; color: var(--text-color); pointer-events: none; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); }
+
+        /* iOS Toggle Switch */
+        .ios-toggle { position: relative; width: 3em; height: 1.75em; font-size: 1rem; appearance: none; -webkit-appearance: none; background: var(--border-color); outline: none; border-radius: 1em; cursor: pointer; transition: background 0.3s; margin: 0; pointer-events: none; }
+        .ios-toggle::after { content: ''; position: absolute; top: 0.125em; left: 0.125em; width: 1.5em; height: 1.5em; background: #fff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.3s; }
+        .ios-toggle:checked { background: #34c759; /* iOS Green */ }
+        .ios-toggle:checked::after { transform: translateX(1.25em); }
+
+        /* --- Bible App Views --- */
+        .view { display: none; flex: 1; overflow-y: auto; overflow-x: hidden; flex-direction: column; padding-bottom: 180px; transition: filter 0.3s, opacity 0.3s; }
+        .view.active { 
+            display: flex; 
+            animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        /* Header */
+        header { display: flex; align-items: center; padding: 15px 20px; background-color: var(--header-bg); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 5; }
+        .header-left, .header-right { flex: 1; display: flex; align-items: center; min-width: 0; }
+        .header-right { justify-content: flex-end; }
+        .header-btn { background: none; border: none; color: var(--primary-color); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        header h1 { flex: 2; font-size: 1.2rem; font-weight: 600; text-align: center; margin: 0; }
+        
+        .translation-select { background: transparent; color: var(--primary-color); border: none; font-size: 1.1rem; outline: none; font-weight: 500; cursor: pointer; appearance: none; -webkit-appearance: none; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Loading Bar (Below Header) & Loading State */
+        .loading-bar {
+            position: absolute;
+            bottom: -1px; left: 0; width: 100%; height: 3px;
+            background-color: var(--border-color);
+            display: none;
+            overflow: hidden;
+            z-index: 10;
+        }
+        .loading-bar::before {
+            content: '';
+            position: absolute; top: 0; left: -50%; width: 50%; height: 100%;
+            background-color: var(--primary-color);
+            animation: loadingBarAnim 1.5s infinite ease-in-out;
+        }
+        @keyframes loadingBarAnim {
+            0% { left: -50%; width: 50%; }
+            50% { left: 25%; width: 80%; }
+            100% { left: 100%; width: 50%; }
+        }
+        
+        body.is-loading .loading-bar { display: block; }
+        body.is-loading .view {
+            opacity: 0.4 !important;
+            pointer-events: none !important;
+            filter: grayscale(100%) !important;
+        }
+
+        /* Home page disabled state during loading via CSS only */
+        body.is-loading #view-home {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: grayscale(100%);
+        }
+
+        /* Collapsible grids & Summary Chevrons */
+        details { padding: 10px 20px; }
+        details[open] > div { animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        summary { 
+            font-size: 1.2rem; 
+            font-weight: 600; 
+            margin-bottom: 10px; 
+            cursor: pointer; 
+            color: var(--text-color); 
+            list-style: none; 
+            font-variant: all-small-caps; 
+            position: relative;
+            padding-right: 30px;
+        }
+        summary::-webkit-details-marker { display: none; }
+        summary::after {
+            content: '';
+            position: absolute;
+            right: 5px;
+            top: calc(50% - 6px);
+            width: 10px;
+            height: 10px;
+            border-right: 2px solid var(--text-muted);
+            border-bottom: 2px solid var(--text-muted);
+            transform: rotate(-45deg); 
+            transition: transform 0.2s ease, top 0.2s ease;
+        }
+        details[open] summary::after {
+            transform: rotate(45deg);
+            top: calc(50% - 8px);
+        }
+
+        .book-grid, .chapter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
+        .grid-item { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px 5px; text-align: center; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9em; transition: background 0.2s; }
+        .grid-item:active { background: var(--border-color); }
+        
+        /* Bookmarks List */
+        .bookmark-list { display: flex; flex-direction: column; gap: 10px; }
+        .bookmark-item { 
+            background: var(--surface-color); 
+            border: 1px solid var(--border-color); 
+            padding: 15px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: background 0.2s; 
+        }
+        .bookmark-item:active { 
+            background: var(--border-color); 
+        }
+        .bookmark-ref { font-weight: 600; color: var(--primary-color); margin-bottom: 5px; }
+        .bookmark-text { font-size: 0.85em; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Reader View */
+        #view-reader { 
+            padding: 20px; 
+            padding-bottom: 180px; /* Explicitly set again to override shorthand above */
+            line-height: 1.6; 
+            /* Scoped Reader Styles */
+            font-family: var(--reader-font-family);
+            font-size: var(--reader-font-size);
+        }
+        .verse { margin-bottom: 10px; cursor: pointer; border-radius: 4px; padding: 5px; transition: background 0.2s, filter 0.2s; }
+        
+        /* RTL-Aware Verse Numbers using logical margin */
+        .verse-num { font-weight: 600; color: var(--primary-color); font-size: 0.75em; vertical-align: super; margin-inline-end: 4px; }
+        
+        /* Verse State Colors & Mixing */
+        .verse.selected { background-color: var(--highlight); }
+        .verse.bookmarked { background-color: var(--bookmarked-bg); }
+        
+        /* Active Playing State (Blue border + light grey background tint) */
+        .verse.playing { 
+            box-shadow: -4px 0 0 0 var(--primary-color); 
+            background-color: var(--playing-bg); 
+        }
+        /* Paused State (All grey: grey border + light grey background tint, dropping primary blue) */
+        .verse.playing.paused {
+            box-shadow: -4px 0 0 0 var(--text-muted);
+            background-color: var(--playing-bg);
+        }
+
+        /* Swap play indicator shadow side if RTL */
+        [dir="rtl"] .verse.playing { box-shadow: 4px 0 0 0 var(--primary-color); }
+        [dir="rtl"] .verse.playing.paused { box-shadow: 4px 0 0 0 var(--text-muted); }
+        
+        /* Combined states using color-mix for harmony */
+        .verse.selected.bookmarked {
+            background-color: color-mix(in srgb, var(--highlight) 50%, var(--bookmarked-bg) 50%);
+        }
+        .verse.playing.selected {
+            background-color: color-mix(in srgb, var(--playing-bg) 50%, var(--highlight) 50%);
+        }
+        .verse.playing.bookmarked {
+            background-color: color-mix(in srgb, var(--playing-bg) 50%, var(--bookmarked-bg) 50%);
+        }
+        .verse.playing.selected.bookmarked {
+            background-color: color-mix(in srgb, var(--playing-bg) 33%, color-mix(in srgb, var(--highlight) 50%, var(--bookmarked-bg) 50%) 67%);
+        }
+        
+        /* Action FABs */
+        .fab { position: fixed; border: none; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 50; transition: transform 0.2s, bottom 0.3s; }
+        .fab:active { transform: scale(0.9); }
+        
+        /* Panic FAB */
+        .fab-panic { background: #ff3b30; color: white; width: 56px; height: 56px; bottom: 20px; right: 20px; }
+        .panic-symbol { font-size: 28px; line-height: 1; font-weight: 400; font-family: '-apple-system', sans-serif; }
+        
+        /* Selection FABs (Bottom Left) */
+        .selection-fabs { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: row; gap: 15px; transform: scale(0); transition: transform 0.2s, bottom 0.3s; z-index: 40; pointer-events: none; }
+        .selection-fabs.visible { transform: scale(1); pointer-events: auto; }
+        .fab-action { background: var(--surface-color); color: var(--primary-color); width: 48px; height: 48px; position: relative; }
+
+        /* Bottom Bar */
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--header-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; transform: translateY(100%); transition: transform 0.3s; z-index: 40; }
+        .bottom-bar.visible { transform: translateY(0); }
+        .bb-btn { background: none; border: none; color: var(--text-color); padding: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .bb-btn .material-icons-round { font-size: 32px; }
+        .bb-btn.play-btn { color: var(--primary-color); }
+        .bb-btn.play-btn .material-icons-round { font-size: 48px; }
+
+        /* CSS-ONLY: Shift UP Left FABs and Right Panic FAB when Bottom Bar is visible */
+        #app-bible:has(.bottom-bar.visible) .fab-panic,
+        #app-bible:has(.bottom-bar.visible) .selection-fabs {
+            bottom: 90px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- CALCULATOR VIEW (Centered) -->
+    <div id="app-calculator-wrapper">
+        <div id="app-calculator">
+            <div class="calc-help material-icons-round" id="calcHelpBtn">help</div>
+            <div class="calc-display" id="calcDisplay">0</div>
+            <div class="calc-grid">
+                <button class="calc-btn btn-func" onclick="calcInput('C')">AC</button>
+                <button class="calc-btn btn-func" onclick="calcInput('±')">±</button>
+                <button class="calc-btn btn-func" onclick="calcInput('%')">%</button>
+                <button class="calc-btn btn-op" onclick="calcInput('÷')">÷</button>
+                
+                <button class="calc-btn btn-num" onclick="calcInput('7')">7</button>
+                <button class="calc-btn btn-num" onclick="calcInput('8')">8</button>
+                <button class="calc-btn btn-num" onclick="calcInput('9')">9</button>
+                <button class="calc-btn btn-op" onclick="calcInput('×')">×</button>
+                
+                <button class="calc-btn btn-num" onclick="calcInput('4')">4</button>
+                <button class="calc-btn btn-num" onclick="calcInput('5')">5</button>
+                <button class="calc-btn btn-num" onclick="calcInput('6')">6</button>
+                <button class="calc-btn btn-op" onclick="calcInput('-')">−</button>
+                
+                <button class="calc-btn btn-num" onclick="calcInput('1')">1</button>
+                <button class="calc-btn btn-num" onclick="calcInput('2')">2</button>
+                <button class="calc-btn btn-num" onclick="calcInput('3')">3</button>
+                <button class="calc-btn btn-op" onclick="calcInput('+')">+</button>
+                
+                <button class="calc-btn btn-num zero" onclick="calcInput('0')">0</button>
+                <button class="calc-btn btn-num" onclick="calcInput('.')">.</button>
+                <button class="calc-btn btn-op" onclick="calcInput('=')">=</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CALCULATOR HELP MODAL (Native Dialog) -->
+    <dialog id="helpModal">
+        <h3>Help</h3>
+        <p style="text-align:center; margin-bottom: 20px; color: var(--text-muted);">Let the reader understand. How many times should I forgive my brother?</p>
+        <div class="ios-list">
+            <label class="ios-row" style="cursor: pointer;">
+                <div class="ios-row-label">Always ask me</div>
+                <div class="ios-row-control">
+                    <input type="checkbox" id="showHelpCheck" class="ios-toggle" checked>
+                </div>
+            </label>
+        </div>
+        <button class="modal-btn" onclick="closeHelp()">Close</button>
+    </dialog>
+
+    <!-- SETTINGS MODAL (Native Dialog) -->
+    <dialog id="settingsModal">
+        <h3>Settings</h3>
+        
+        <div class="ios-list">
+            <!-- Theme Select Row -->
+            <div class="ios-row ios-select-row">
+                <div class="ios-row-label">Theme</div>
+                <div class="ios-row-control">
+                    <div class="ios-select-wrapper">
+                        <span id="themeDisplay" class="ios-select-display">Dark</span>
+                        <span class="material-icons-round">chevron_right</span>
+                    </div>
+                </div>
+                <select id="setTheme" class="ios-select-overlay">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                </select>
+            </div>
+            
+            <!-- Font Family Select Row -->
+            <div class="ios-row ios-select-row">
+                <div class="ios-row-label">Font Family</div>
+                <div class="ios-row-control">
+                    <div class="ios-select-wrapper">
+                        <span id="fontFamDisplay" class="ios-select-display">Sans-serif</span>
+                        <span class="material-icons-round">chevron_right</span>
+                    </div>
+                </div>
+                <select id="setFontFam" class="ios-select-overlay">
+                    <option value="'-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', Arial, sans-serif">Sans-serif</option>
+                    <option value="Georgia, serif">Serif</option>
+                    <option value="monospace">Monospace</option>
+                </select>
+            </div>
+            
+            <!-- Font Size Stepper Row -->
+            <div class="ios-row">
+                <div class="ios-row-label">Font Size</div>
+                <div class="ios-row-control">
+                    <div class="ios-stepper">
+                        <button onclick="changeFontSize(-1)">-</button>
+                        <span id="fontSizeDisplay">18</span>
+                        <button onclick="changeFontSize(1)">+</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Source Select Row -->
+            <div class="ios-row ios-select-row">
+                <div class="ios-row-label">Data Source</div>
+                <div class="ios-row-control">
+                    <div class="ios-select-wrapper">
+                        <span id="sourceDisplay" class="ios-select-display">GetBible</span>
+                        <span class="material-icons-round">chevron_right</span>
+                    </div>
+                </div>
+                <select id="setSource" class="ios-select-overlay">
+                    <option value="getbible">GetBible</option>
+                    <option value="openbible">OpenBible</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="ios-list" id="speechSettingsGroup">
+            <!-- Speech Rate Stepper Row -->
+            <div class="ios-row" id="speechRateRow">
+                <div class="ios-row-label">Speech Rate</div>
+                <div class="ios-row-control">
+                    <div class="ios-stepper">
+                        <button onclick="changeSpeechRate(-0.1)">-</button>
+                        <span id="rateDisplay">1.0</span>
+                        <button onclick="changeSpeechRate(0.1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Select Row -->
+            <div class="ios-row ios-select-row" id="speechVoiceRow">
+                <div class="ios-row-label">Voice</div>
+                <div class="ios-row-control">
+                    <div class="ios-select-wrapper">
+                        <span id="voiceDisplay" class="ios-select-display">System Default</span>
+                        <span class="material-icons-round">chevron_right</span>
+                    </div>
+                </div>
+                <select id="setVoice" class="ios-select-overlay"></select>
+            </div>
+        </div>
+
+        <div class="ios-list">
+            <!-- Install App Row -->
+            <div class="ios-row" id="installRowContainer" onclick="triggerInstall()" style="display: none; cursor: pointer;">
+                <div class="ios-row-label">Install to Home Screen</div>
+                <div class="ios-row-control">
+                    <span class="material-icons-round" style="color: var(--primary-color);">install_desktop</span>
+                </div>
+            </div>
+            <!-- Panic Toggle Row wrapped in label for native full-row clickability -->
+            <label class="ios-row" style="cursor: pointer;">
+                <div class="ios-row-label">Panic Calculator Mode</div>
+                <div class="ios-row-control">
+                    <input type="checkbox" id="setPanic" class="ios-toggle" checked>
+                </div>
+            </label>
+        </div>
+
+        <button class="modal-btn" onclick="closeSettings()">Done</button>
+    </dialog>
+
+
+    <!-- BIBLE APP (VULT) -->
+    <div id="app-bible">
+        <header>
+            <div class="header-left">
+                <button class="header-btn" id="navBack" style="display: none;">
+                    <span class="material-icons-round">arrow_back_ios</span>
+                </button>
+                <select class="translation-select" id="transSelect"></select>
+            </div>
+            
+            <h1 id="headerTitle">Vult</h1>
+            
+            <div class="header-right">
+                <button class="header-btn" onclick="openSettings()">
+                    <span class="material-icons-round">settings</span>
+                </button>
+            </div>
+            
+            <!-- Dynamic CSS Loading Bar -->
+            <div class="loading-bar"></div>
+        </header>
+
+        <!-- HOME VIEW (Book Picker) -->
+        <div class="view active" id="view-home">
+            <details open id="ntDetails">
+                <summary id="ntSummary">New Testament</summary>
+                <div class="book-grid" id="ntGrid"></div>
+            </details>
+            <details open id="otDetails">
+                <summary id="otSummary">Old Testament</summary>
+                <div class="book-grid" id="otGrid"></div>
+            </details>
+            <details open>
+                <summary>Bookmarks</summary>
+                <div class="bookmark-list" id="bookmarksList"></div>
+            </details>
+        </div>
+
+        <!-- CHAPTERS VIEW -->
+        <div class="view" id="view-chapters">
+            <details open>
+                <summary>Chapters</summary>
+                <div class="chapter-grid" id="chapterGrid"></div>
+            </details>
+            <!-- Bookmarks Specific to the Selected Book -->
+            <details open id="bookBookmarksDetails">
+                <summary>Bookmarks</summary>
+                <div class="bookmark-list" id="bookBookmarksList"></div>
+            </details>
+        </div>
+
+        <!-- READER VIEW -->
+        <div class="view" id="view-reader">
+            <div id="readerContent"></div>
+        </div>
+
+
+        <!-- SELECTION FABS (Bottom Left) -->
+        <div class="selection-fabs" id="selectionFabs">
+            <button class="fab fab-action" id="bookmarkFabBtn" onclick="toggleBookmarks()">
+                <span class="material-icons-round" id="bookmarkFabIcon">bookmark</span>
+            </button>
+            <button class="fab fab-action" onclick="copySelected()">
+                <span class="material-icons-round">content_copy</span>
+            </button>
+            <button class="fab fab-action" onclick="shareSelected()">
+                <span class="material-icons-round">share</span>
+            </button>
+        </div>
+
+        <!-- BOTTOM BAR (Reader Navigation & Play) -->
+        <div class="bottom-bar" id="bottomBar">
+            <button class="bb-btn" onclick="prevChapter()">
+                <span class="material-icons-round">skip_previous</span>
+            </button>
+            <button class="bb-btn play-btn" id="playBtn">
+                <span class="material-icons-round" id="playIcon">play_circle</span>
+            </button>
+            <button class="bb-btn" onclick="nextChapter()">
+                <span class="material-icons-round">skip_next</span>
+            </button>
+        </div>
+
+        <!-- PANIC FAB (Bottom Right) -->
+        <button class="fab fab-panic" id="panicBtn" onclick="triggerPanic()">
+            <span class="panic-symbol">±</span>
+        </button>
+    </div>
+
+<script>
+/* =========================================
+   STATE MANAGEMENT & CONSTANTS
+========================================= */
+let state = {
+    theme: 'dark', fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', Arial, sans-serif", fontSize: 18,
+    panicEnabled: true, voiceURI: '', rate: 1, translation: 'kjv',
+    bookmarks: [], lastBook: null, lastChap: null, secretUnlocked: false,
+    source: 'getbible'
+};
+
+const SECRET_CODE = ['7', '0', '×', '7'];
+const BIBLE_BOOKS = [
+    "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
+    "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
+];
+const OPENBIBLE_TRANS = [
+    { value: 'akjv', label: 'AKJV' }, { value: 'asv', label: 'ASV' }, { value: 'cpdv', label: 'CPDV' },
+    { value: 'dbt', label: 'DBT' }, { value: 'drb', label: 'DRB' }, { value: 'erv', label: 'ERV' },
+    { value: 'jps', label: 'JPS' }, { value: 'kjv', label: 'KJV' }, { value: 'slt', label: 'SLT' },
+    { value: 'wbt', label: 'WBT' }, { value: 'web', label: 'WEB' }, { value: 'ylt', label: 'YLT' }
+];
+
+let inputBuffer = [];
+let displayValue = '0';
+let activeData = { OT: [], NT: [] }; 
+let currentBookIndex = -1;
+let currentIsNT = false;
+let currentChapter = -1;
+let playingIndex = -1;
+let selectedVerses = new Set();
+let synth = window.speechSynthesis || null;
+let voices = [];
+let isPlaying = false;
+let currentUtterance = null;
+let wakeLock = null;
+let activeView = 'home'; 
+
+// Store metadata / directions for GetBible translations dynamically
+let translationMeta = {};
+
+// PWA Install Prompt Capture & Dynamic Manifest Generation
+let deferredPrompt = null;
+
+function updateDynamicManifest() {
+    const appName = state.panicEnabled ? "Calculator" : "Vult";
+    
+    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><rect width="512" height="512" rx="120" fill="#000"/><text x="256" y="345" font-size="280" font-family="-apple-system, sans-serif" font-weight="bold" fill="#fff" text-anchor="middle">±</text></svg>`;
+    const iconDataUri = `data:image/svg+xml;base64,${btoa(svgIcon)}`;
+
+    const manifestObj = {
+        name: appName,
+        short_name: appName,
+        start_url: window.location.href,
+        display: "standalone",
+        background_color: "#000000",
+        theme_color: "#000000",
+        icons: [
+            {
+                src: iconDataUri,
+                sizes: "512x512",
+                type: "image/svg+xml"
+            }
+        ]
+    };
+
+    const stringManifest = JSON.stringify(manifestObj);
+    const blob = new Blob([stringManifest], { type: 'application/json' });
+    const manifestURL = URL.createObjectURL(blob);
+    
+    const manifestLink = document.getElementById('dynamicManifest');
+    if (manifestLink) {
+        manifestLink.setAttribute('href', manifestURL);
+    }
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    updateInstallButtonDisplay();
+});
+
+window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    updateInstallButtonDisplay();
+});
+
+function updateInstallButtonDisplay() {
+    const installRowContainer = document.getElementById('installRowContainer');
+    if (installRowContainer) {
+        if (deferredPrompt) {
+            installRowContainer.style.display = 'flex';
+        } else {
+            installRowContainer.style.display = 'none';
+        }
+    }
+}
+
+async function triggerInstall() {
+    if (!deferredPrompt) return;
+    updateDynamicManifest();
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+        deferredPrompt = null;
+        document.getElementById('installRowContainer').style.display = 'none';
+    }
+}
+
+/* =========================================
+   HELPERS
+========================================= */
+function getCurrentBook() {
+    return currentBookIndex >= 0 ? (currentIsNT ? activeData.NT : activeData.OT)[currentBookIndex] : null;
+}
+
+function pushNavState(viewName) {
+    activeView = viewName;
+    history.pushState({ view: viewName }, '');
+}
+
+window.onpopstate = function (event) {
+    const settingsModal = document.getElementById('settingsModal');
+    const helpModal = document.getElementById('helpModal');
+    
+    if (settingsModal && settingsModal.open) {
+        closeSettings();
+        return;
+    }
+    if (helpModal && helpModal.open) {
+        closeHelp();
+        return;
+    }
+
+    const navBackBtn = document.getElementById('navBack');
+    if (navBackBtn && navBackBtn.style.display !== 'none' && typeof navBackBtn.onclick === 'function') {
+        navBackBtn.onclick();
+    } else if (state.secretUnlocked && state.panicEnabled) {
+        triggerPanic();
+    }
+};
+
+/* =========================================
+   INITIALIZATION
+========================================= */
+function init() {
+    loadState();
+    
+    if (!state.source) {
+        state.source = 'getbible';
+        saveState();
+    }
+    
+    applySettings();
+    checkSpeechSupport();
+    setupPlayButton();
+    setupDialogDismiss();
+    updateDynamicManifest();
+    
+    history.replaceState({ view: 'calc' }, '');
+    
+    if (!state.panicEnabled) {
+        state.secretUnlocked = true;
+        openBibleApp(); 
+    } else {
+        showCalculator();
+    }
+}
+
+function setupDialogDismiss() {
+    const dialogs = document.querySelectorAll('dialog');
+    dialogs.forEach(dialog => {
+        dialog.addEventListener('click', function(e) {
+            if (e.target === this) this.close();
+        });
+    });
+}
+
+function checkSpeechSupport() {
+    if (!synth) {
+        const playBtn = document.getElementById('playBtn');
+        if (playBtn) playBtn.style.display = 'none';
+        
+        const speechGroup = document.getElementById('speechSettingsGroup');
+        if (speechGroup) speechGroup.style.display = 'none';
+    } else {
+        populateVoices();
+    }
+}
+
+function setupPlayButton() {
+    const playBtnEl = document.getElementById('playBtn');
+    let playPressTimer;
+    let isLongPress = false;
+
+    playBtnEl.addEventListener('pointerdown', (e) => {
+        isLongPress = false;
+        playPressTimer = setTimeout(() => {
+            isLongPress = true;
+            cancelSpeech();
+            playingIndex = -1; 
+            if ('vibrate' in navigator) navigator.vibrate(50); 
+        }, 600); 
+    });
+    playBtnEl.addEventListener('pointerup', (e) => {
+        clearTimeout(playPressTimer);
+        if (!isLongPress) togglePlay();
+    });
+    playBtnEl.addEventListener('pointerleave', () => clearTimeout(playPressTimer));
+    playBtnEl.addEventListener('pointercancel', () => clearTimeout(playPressTimer));
+    playBtnEl.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+async function requestWakeLock() {
+    if ('wakeLock' in navigator && document.visibilityState === 'visible') {
+        try {
+            wakeLock = await navigator.wakeLock.request('screen');
+        } catch (err) {
+            console.error(`Wake Lock error: ${err.name}, ${err.message}`);
+        }
+    }
+}
+
+function releaseWakeLock() {
+    if (wakeLock !== null) {
+        wakeLock.release().then(() => { wakeLock = null; });
+    }
+}
+
+document.addEventListener('visibilitychange', async () => {
+    if (wakeLock !== null && document.visibilityState === 'visible' && isPlaying) {
+        await requestWakeLock();
+    }
+});
+
+function loadState() {
+    const saved = localStorage.getItem('vult_state');
+    if (saved) state = { ...state, ...JSON.parse(saved) };
+    
+    if (localStorage.getItem('vult_hideHelp')) {
+        document.getElementById('calcHelpBtn').style.display = 'none';
+    }
+}
+
+function saveState() {
+    localStorage.setItem('vult_state', JSON.stringify(state));
+}
+
+/* =========================================
+   CALCULATOR LOGIC
+========================================= */
+function showCalculator() {
+    document.getElementById('app-calculator-wrapper').style.display = 'flex';
+    document.getElementById('app-bible').style.display = 'none';
+    displayValue = '0';
+    updateDisplay();
+}
+
+function calcInput(val) {
+    if (val === 'C') {
+        displayValue = '0';
+        inputBuffer = [];
+    } else if (val === '=') {
+        try {
+            let expr = displayValue.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+            displayValue = String(eval(expr));
+        } catch { displayValue = 'Error'; }
+    } else {
+        if (displayValue === '0' && !isNaN(val)) displayValue = val;
+        else displayValue += val;
+    }
+    updateDisplay();
+
+    inputBuffer.push(val);
+    if (inputBuffer.length > 4) inputBuffer.shift();
+    if (inputBuffer.join('') === SECRET_CODE.join('')) {
+        setTimeout(openBibleApp, 200);
+    }
+}
+
+function updateDisplay() {
+    document.getElementById('calcDisplay').innerText = displayValue;
+}
+
+document.getElementById('calcHelpBtn').addEventListener('click', () => {
+    document.getElementById('helpModal').showModal();
+    pushNavState('modal-help');
+});
+
+function closeHelp() {
+    document.getElementById('helpModal').close();
+    if(!document.getElementById('showHelpCheck').checked) {
+        localStorage.setItem('vult_hideHelp', 'true');
+        document.getElementById('calcHelpBtn').style.display = 'none';
+    }
+}
+
+/* =========================================
+   BIBLE TRANSLATIONS & DATA LOGIC
+========================================= */
+async function populateTranslations() {
+    const select = document.getElementById('transSelect');
+    select.innerHTML = '';
+    
+    if (state.source === 'getbible') {
+        try {
+            const res = await fetch('https://api.getbible.net/v2/translations.json');
+            const data = await res.json();
+            
+            translationMeta = data; // Cache metadata containing direction properties
+            let transArray = Object.values(data).sort((a,b) => a.abbreviation.localeCompare(b.abbreviation));
+            
+            transArray.forEach(t => {
+                let opt = document.createElement('option');
+                opt.value = t.abbreviation;
+                opt.innerText = `${t.abbreviation.toUpperCase()} - ${t.translation}`;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            console.error("Failed to load GetBible translations:", e);
+            let opt = document.createElement('option');
+            opt.value = 'kjv';
+            opt.innerText = 'KJV - King James Version';
+            select.appendChild(opt);
+        }
+    } else {
+        OPENBIBLE_TRANS.forEach(t => {
+            let opt = document.createElement('option');
+            opt.value = t.value;
+            opt.innerText = t.label;
+            select.appendChild(opt);
+        });
+    }
+    
+    let exists = Array.from(select.options).some(o => o.value === state.translation);
+    if (exists) {
+        select.value = state.translation;
+    } else if (select.options.length > 0) {
+        state.translation = select.options[0].value;
+        select.value = state.translation;
+        saveState();
+    }
+}
+
+async function loadBibleData() {
+    if (activeData.OT.length > 0 || activeData.NT.length > 0) return true;
+    
+    document.body.classList.add('is-loading');
+    try {
+        let allBooks = [];
+
+        if (state.source === 'getbible') {
+            const res = await fetch(`https://api.getbible.net/v2/${state.translation}.json`);
+            if (!res.ok) throw new Error("GetBible API returned " + res.status);
+            const data = await res.json();
+            
+            let bookList = Array.isArray(data) ? data : (data.books || Object.values(data));
+            
+            bookList.forEach((bookItem, bIdx) => {
+                let bookName = bookItem.name || bookItem.book_name || BIBLE_BOOKS[bIdx] || `Book ${bIdx + 1}`;
+                let chapters = [];
+                let chaptersData = Array.isArray(bookItem) ? bookItem : (bookItem.chapters || []);
+                
+                if (typeof chaptersData === 'object') {
+                    const chapArray = Array.isArray(chaptersData) ? chaptersData : Object.values(chaptersData);
+                    chapArray.forEach((chapItem, cIdx) => {
+                        let versesArray = [];
+                        let versesData = Array.isArray(chapItem) ? chapItem : (chapItem.verses || chapItem);
+                        
+                        const vArray = Array.isArray(versesData) ? versesData : Object.values(versesData);
+                        vArray.specials = versesData.specials; // preserve properties if any
+                        vArray.forEach((v, vIdx) => {
+                            let vNum = v.verse || v.n || (vIdx + 1);
+                            let text = v.text || v.txt || (typeof v === 'string' ? v : "");
+                            text = text.replace(/¶/g, '').trim(); 
+                            if (vNum && text) versesArray[parseInt(vNum)] = text;
+                        });
+                        
+                        let chapNum = chapItem.chapter || chapItem.c || (cIdx + 1);
+                        chapters[parseInt(chapNum)] = versesArray;
+                    });
+                }
+                allBooks.push({ name: bookName, chapters: chapters });
+            });
+            
+        } else {
+            let text = "";
+            try {
+                const onlineRes = await fetch(`https://openbible.com/textfiles/${state.translation}.txt`);
+                if (!onlineRes.ok) throw new Error("Online file request returned " + onlineRes.status);
+                text = await onlineRes.text();
+            } catch (onlineErr) {
+                console.warn("Could not fetch remote translation file, falling back to local storage.", onlineErr);
+                const localRes = await fetch(`${state.translation}.txt`);
+                if (!localRes.ok) throw new Error("Local file request returned " + localRes.status);
+                text = await localRes.text();
+            }
+            
+            const lines = text.split(/\r?\n/);
+            
+            for (let line of lines) {
+                if (!line.trim()) continue;
+                let match = line.match(/^([A-Za-z\s\d]+?)[\s\t]+(\d+)[:\t](\d+)[\s\t]+(.*)$/);
+                if (match) {
+                    let bName = match[1].trim();
+                    let cNum = parseInt(match[2]);
+                    let vNum = parseInt(match[3]);
+                    let vText = match[4].replace(/¶/g, '').trim(); 
+
+                    let book = allBooks.find(b => b.name === bName);
+                    if (!book) {
+                        book = { name: bName, chapters: [] };
+                        allBooks.push(book);
+                    }
+                    
+                    if (!book.chapters[cNum]) book.chapters[cNum] = [];
+                    book.chapters[cNum][vNum] = vText;
+                }
+            }
+        }
+
+        let splitIdx = -1;
+        for (let i = 0; i < allBooks.length; i++) {
+            let n = allBooks[i].name.toLowerCase();
+            if (/(matt|mateo|mateus|matthieu|matthäus|matteo|matí)/i.test(n)) {
+                splitIdx = i;
+                break;
+            }
+        }
+        
+        if (splitIdx === -1) {
+            if (allBooks.length === 66) splitIdx = 39;
+            else if (allBooks.length === 27) splitIdx = 0;
+        }
+
+        if (splitIdx === 0) {
+            activeData.OT = [];
+            activeData.NT = allBooks;
+        } else if (splitIdx > 0) {
+            activeData.OT = allBooks.slice(0, splitIdx);
+            activeData.NT = allBooks.slice(splitIdx);
+        } else {
+            activeData.OT = allBooks;
+            activeData.NT = [];
+        }
+
+        document.body.classList.remove('is-loading');
+        return true;
+
+    } catch (e) {
+        console.error("Data Load Error:", e);
+        document.body.classList.remove('is-loading');
+        alert(`Error loading ${state.translation.toUpperCase()} from ${state.source}.\nPlease ensure you have an internet connection or the local file exists.`);
+        return false;
+    }
+}
+
+async function switchTranslation(newTrans) {
+    if (state.translation === newTrans) return true;
+    const prevTrans = state.translation;
+    state.translation = newTrans;
+    document.getElementById('transSelect').value = newTrans;
+    activeData = { OT: [], NT: [] };
+    
+    if (await loadBibleData()) {
+        saveState();
+        return true;
+    } else {
+        state.translation = prevTrans;
+        document.getElementById('transSelect').value = prevTrans;
+        activeData = { OT: [], NT: [] };
+        await loadBibleData();
+        return false;
+    }
+}
+
+/* =========================================
+   BIBLE UI NAVIGATION
+========================================= */
+async function openBibleApp() {
+    state.secretUnlocked = true;
+    inputBuffer = [];
+    document.getElementById('app-calculator-wrapper').style.display = 'none';
+    document.getElementById('app-bible').style.display = 'flex';
+    document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none';
+    
+    await populateTranslations();
+    document.getElementById('transSelect').value = state.translation;
+
+    const success = await loadBibleData();
+    if (success && state.lastBook && state.lastChap) {
+        let isNT = activeData.NT.some(b => b.name === state.lastBook.name);
+        let exists = isNT || activeData.OT.some(b => b.name === state.lastBook.name);
+        
+        if(exists) {
+            openChapter(state.lastBook.name, isNT, state.lastChap, false);
+        } else {
+            renderHome();
+        }
+    } else {
+        renderHome();
+    }
+}
+
+function createBookmarkElement(bm) {
+    let div = document.createElement('div');
+    div.className = 'bookmark-item';
+    div.innerHTML = `<div class="bookmark-ref">${bm.ref} (${bm.trans.toUpperCase()})</div><div class="bookmark-text">${bm.text}</div>`;
+    div.onclick = async () => {
+        if (await switchTranslation(bm.trans)) {
+            let isNT = activeData.NT.some(b => b.name === bm.book);
+            openChapter(bm.book, isNT, bm.chapter, true, bm.verse);
+        }
+    };
+    return div;
+}
+
+function renderHome() {
+    hideAllViews();
+    document.getElementById('view-home').classList.add('active');
+    document.getElementById('headerTitle').innerText = 'Vult';
+    
+    document.getElementById('navBack').style.display = 'none';
+    document.getElementById('transSelect').style.display = 'inline-block';
+    
+    document.getElementById('bottomBar').classList.remove('visible');
+    updateSelectionFabs();
+    
+    const ntGrid = document.getElementById('ntGrid');
+    const otGrid = document.getElementById('otGrid');
+    const ntDetails = document.getElementById('ntDetails');
+    const otDetails = document.getElementById('otDetails');
+    const ntSummary = document.getElementById('ntSummary');
+    const otSummary = document.getElementById('otSummary');
+
+    ntGrid.innerHTML = ''; otGrid.innerHTML = '';
+    
+    if (activeData.NT.length === 0) {
+        ntDetails.style.display = 'none';
+        otDetails.style.display = 'block';
+        otSummary.innerText = 'Books';
+    } else if (activeData.OT.length === 0) {
+        otDetails.style.display = 'none';
+        ntDetails.style.display = 'block';
+        ntSummary.innerText = 'Books';
+    } else {
+        ntDetails.style.display = 'block';
+        otDetails.style.display = 'block';
+        ntSummary.innerText = 'New Testament';
+        otSummary.innerText = 'Old Testament';
+    }
+
+    const renderGrid = (data, grid, isNT) => {
+        data.forEach((b, i) => {
+            if (!b.chapters || !b.chapters.some(c => c && c.length > 0)) return; 
+            let div = document.createElement('div');
+            div.className = 'grid-item'; div.innerText = b.name;
+            div.setAttribute('dir', 'auto');
+            div.onclick = () => openBook(i, isNT);
+            grid.appendChild(div);
+        });
+    };
+
+    renderGrid(activeData.NT, ntGrid, true);
+    renderGrid(activeData.OT, otGrid, false);
+
+    renderBookmarksList();
+    pushNavState('home');
+}
+
+function renderBookmarksList() {
+    const list = document.getElementById('bookmarksList');
+    list.innerHTML = '';
+    if (state.bookmarks.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9em; padding: 0 10px;">No bookmarks yet.</p>';
+        return;
+    }
+    state.bookmarks.forEach(bm => list.appendChild(createBookmarkElement(bm)));
+}
+
+function openBook(index, isNT) {
+    hideAllViews();
+    document.getElementById('view-chapters').classList.add('active');
+    
+    document.getElementById('navBack').style.display = 'flex';
+    document.getElementById('navBack').onclick = renderHome;
+    document.getElementById('transSelect').style.display = 'none';
+    
+    const book = isNT ? activeData.NT[index] : activeData.OT[index];
+    document.getElementById('headerTitle').innerText = book.name;
+
+    const grid = document.getElementById('chapterGrid');
+    grid.innerHTML = '';
+    for(let i=1; i<book.chapters.length; i++) {
+        if(!book.chapters[i] || book.chapters[i].length === 0) continue;
+        let div = document.createElement('div');
+        div.className = 'grid-item'; div.innerText = i;
+        div.onclick = () => openChapter(book.name, isNT, i, false);
+        grid.appendChild(div);
+    }
+    
+    const bkmDetails = document.getElementById('bookBookmarksDetails');
+    const bkmList = document.getElementById('bookBookmarksList');
+    bkmList.innerHTML = '';
+    
+    const bkBookmarks = state.bookmarks.filter(bm => bm.book === book.name);
+    bkmDetails.style.display = 'block';
+    if (bkBookmarks.length > 0) {
+        bkBookmarks.forEach(bm => bkmList.appendChild(createBookmarkElement(bm)));
+    } else {
+        bkmList.innerHTML = '<p style="color:var(--text-muted); font-size:0.9em; padding: 0 10px;">No bookmarks yet.</p>';
+    }
+
+    pushNavState('chapters');
+}
+
+function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVerseNum = null) {
+    cancelSpeech();
+    currentIsNT = isNT;
+    currentChapter = chapterNum;
+    const testament = isNT ? activeData.NT : activeData.OT;
+    currentBookIndex = testament.findIndex(b => b.name === bookName);
+    
+    const book = testament[currentBookIndex];
+    if(!book) return renderHome();
+
+    state.lastBook = { name: book.name, isNT: isNT };
+    state.lastChap = chapterNum;
+    saveState();
+
+    hideAllViews();
+    
+    document.getElementById('navBack').style.display = 'flex';
+    document.getElementById('navBack').onclick = () => openBook(currentBookIndex, currentIsNT);
+    document.getElementById('transSelect').style.display = 'none';
+    document.getElementById('headerTitle').innerText = `${book.name} ${chapterNum}`;
+    
+    const readerView = document.getElementById('view-reader');
+    readerView.classList.add('active');
+    
+    document.getElementById('bottomBar').classList.add('visible');
+    updateSelectionFabs();
+
+    const container = document.getElementById('readerContent');
+    container.innerHTML = '';
+    selectedVerses.clear();
+    updateSelectionFabs();
+
+    const verses = book.chapters[chapterNum];
+    
+    // Determine text direction from API metadata if available (GetBible), fallback to LTR
+    let textDirection = 'ltr';
+    if (state.source === 'getbible' && translationMeta[state.translation] && translationMeta[state.translation].direction) {
+        textDirection = translationMeta[state.translation].direction.toLowerCase();
+    }
+    container.setAttribute('dir', textDirection);
+
+    verses.forEach((text, vNum) => {
+        if (!text) return;
+        let p = document.createElement('p');
+        p.className = 'verse';
+        p.id = `v${vNum}`;
+        p.innerHTML = `<span class="verse-num">${vNum}</span>${text}`;
+        
+        if (isVerseBookmarked(vNum)) {
+            p.classList.add('bookmarked');
+        }
+
+        p.onclick = () => toggleVerseSelection(p, vNum);
+        
+        let versePressTimer = null;
+        p.addEventListener('pointerdown', (e) => {
+            versePressTimer = setTimeout(() => {
+                copySingleVerse(book.name, chapterNum, vNum, text);
+                if ('vibrate' in navigator) navigator.vibrate(40);
+                p.style.filter = 'brightness(1.5)';
+                setTimeout(() => p.style.filter = '', 200);
+            }, 600);
+        });
+        p.addEventListener('pointerup', () => clearTimeout(versePressTimer));
+        p.addEventListener('pointerleave', () => clearTimeout(versePressTimer));
+        p.addEventListener('pointercancel', () => clearTimeout(versePressTimer));
+        p.oncontextmenu = (e) => {
+            e.preventDefault();
+            copySingleVerse(book.name, chapterNum, vNum, text);
+        };
+        
+        container.appendChild(p);
+    });
+
+    if (scrollToVerse && targetVerseNum) {
+        setTimeout(() => {
+            let targetEl = document.getElementById(`v${targetVerseNum}`);
+            if (targetEl) {
+                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    } else {
+        readerView.scrollTop = 0;
+    }
+    pushNavState('reader');
+}
+
+function hideAllViews() {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('bottomBar').classList.remove('visible');
+    updateSelectionFabs();
+}
+
+/* =========================================
+   INTERACTIONS: Selection, Copy, Share, Bookmark
+========================================= */
+function toggleVerseSelection(element, vNum) {
+    if (selectedVerses.has(vNum)) {
+        selectedVerses.delete(vNum);
+        element.classList.remove('selected');
+    } else {
+        selectedVerses.add(vNum);
+        element.classList.add('selected');
+    }
+    updateSelectionFabs();
+}
+
+function updateSelectionFabs() {
+    const fabs = document.getElementById('selectionFabs');
+    if (selectedVerses.size > 0 && document.getElementById('view-reader').classList.contains('active')) {
+        fabs.classList.add('visible');
+        let allBookmarked = Array.from(selectedVerses).every(v => isVerseBookmarked(v));
+        document.getElementById('bookmarkFabIcon').innerText = allBookmarked ? 'bookmark_remove' : 'bookmark';
+    } else {
+        fabs.classList.remove('visible');
+    }
+}
+
+function getSelectedTextData() {
+    const book = getCurrentBook();
+    const sortedVerses = Array.from(selectedVerses).sort((a,b) => a-b);
+    let textOut = "";
+    sortedVerses.forEach(vNum => {
+        textOut += `[${vNum}] ${book.chapters[currentChapter][vNum]} `;
+    });
+    
+    let ref = `${book.name} ${currentChapter}:`;
+    if(sortedVerses.length === 1) ref += sortedVerses[0];
+    else ref += `${sortedVerses[0]}-${sortedVerses[sortedVerses.length-1]}`;
+    
+    return { text: textOut.trim(), ref: ref, firstV: sortedVerses[0] };
+}
+
+function getFullSelectedText() {
+    const data = getSelectedTextData();
+    return `${data.text} — ${data.ref} (${state.translation.toUpperCase()})`;
+}
+
+function copySelected() {
+    navigator.clipboard.writeText(getFullSelectedText()).then(clearSelection);
+}
+
+function copySingleVerse(book, chap, verseNum, text) {
+    const fullText = `${text} — ${book} ${chap}:${verseNum} (${state.translation.toUpperCase()})`;
+    navigator.clipboard.writeText(fullText);
+}
+
+async function shareSelected() {
+    const fullText = getFullSelectedText();
+    
+    if (navigator.share) {
+        try {
+            await navigator.share({ title: 'Vult Bible App', text: fullText });
+            clearSelection();
+        } catch (err) {
+            console.log('User cancelled or error sharing:', err);
+        }
+    } else {
+        copySelected();
+        alert("Text copied to clipboard!");
+    }
+}
+
+function isVerseBookmarked(vNum) {
+    if (currentBookIndex < 0) return false;
+    const bookName = getCurrentBook().name;
+    return state.bookmarks.some(b => 
+        b.trans === state.translation && 
+        b.book === bookName && 
+        b.chapter === currentChapter && 
+        b.verse === vNum
+    );
+}
+
+function toggleBookmarks() {
+    const bookName = getCurrentBook().name;
+    let allBookmarked = Array.from(selectedVerses).every(v => isVerseBookmarked(v));
+    
+    if (allBookmarked) {
+        selectedVerses.forEach(vNum => {
+            state.bookmarks = state.bookmarks.filter(b => 
+                !(b.trans === state.translation && b.book === bookName && b.chapter === currentChapter && b.verse === vNum)
+            );
+            const el = document.getElementById(`v${vNum}`);
+            if(el) el.classList.remove('bookmarked');
+        });
+    } else {
+        const book = getCurrentBook();
+        selectedVerses.forEach(vNum => {
+            if (!isVerseBookmarked(vNum)) {
+                state.bookmarks.push({
+                    ref: `${bookName} ${currentChapter}:${vNum}`,
+                    book: bookName,
+                    chapter: currentChapter,
+                    verse: vNum,
+                    text: book.chapters[currentChapter][vNum].substring(0, 50) + '...',
+                    trans: state.translation
+                });
+                const el = document.getElementById(`v${vNum}`);
+                if(el) el.classList.add('bookmarked');
+            }
+        });
+    }
+    
+    saveState();
+    clearSelection();
+}
+
+function clearSelection() {
+    selectedVerses.clear();
+    document.querySelectorAll('.verse.selected').forEach(el => el.classList.remove('selected'));
+    updateSelectionFabs();
+}
+
+/* =========================================
+   SPEECH SYNTHESIS (AUDIO)
+========================================= */
+function togglePlay() {
+    if (!synth) return;
+    if (isPlaying) {
+        isPlaying = false;
+        if (synth) synth.cancel();
+        releaseWakeLock();
+        document.getElementById('playIcon').innerText = 'play_circle';
+        
+        document.querySelectorAll('.verse.playing').forEach(el => el.classList.add('paused'));
+    } else {
+        let startIdx = 1;
+        const playingEl = document.querySelector('.verse.playing');
+        
+        if (playingEl) {
+            let vMatch = playingEl.id.match(/^v(\d+)$/);
+            if (vMatch) {
+                startIdx = parseInt(vMatch[1]);
+            }
+        } else if (playingIndex !== -1) {
+            startIdx = playingIndex;
+        } else if (selectedVerses.size > 0) {
+            startIdx = Math.min(...Array.from(selectedVerses));
+            clearSelection();
+        }
+        
+        playVerse(startIdx);
+    }
+}
+
+function playVerse(vNum) {
+    if (!synth) return;
+    
+    isPlaying = false;
+    if (synth) synth.cancel();
+    
+    const verses = getCurrentBook().chapters[currentChapter];
+    
+    while(!verses[vNum] && vNum < verses.length) vNum++;
+    
+    if (vNum >= verses.length) {
+        nextChapter(true);
+        return;
+    }
+
+    playingIndex = vNum;
+    highlightPlayingVerse();
+
+    let text = verses[vNum];
+    currentUtterance = new SpeechSynthesisUtterance(text);
+    
+    if (state.voiceURI) {
+        let voice = voices.find(v => v.voiceURI === state.voiceURI);
+        if (voice) currentUtterance.voice = voice;
+    }
+    currentUtterance.rate = state.rate;
+    
+    currentUtterance.onend = () => {
+        if (!isPlaying) return;
+        playVerse(vNum + 1);
+    };
+
+    isPlaying = true;
+    requestWakeLock();
+    document.getElementById('playIcon').innerText = 'pause_circle';
+    synth.speak(currentUtterance);
+}
+
+function highlightPlayingVerse() {
+    document.querySelectorAll('.verse.playing').forEach(el => {
+        el.classList.remove('playing');
+        el.classList.remove('paused');
+    });
+    let el = document.getElementById(`v${playingIndex}`);
+    if (el) {
+        el.classList.add('playing');
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+function cancelSpeech() {
+    isPlaying = false;
+    currentUtterance = null;
+    releaseWakeLock();
+    if (synth) synth.cancel();
+    document.getElementById('playIcon').innerText = 'play_circle';
+    document.querySelectorAll('.verse.playing').forEach(el => {
+        el.classList.remove('playing');
+        el.classList.remove('paused');
+    });
+}
+
+function prevChapter() {
+    cancelSpeech();
+    playingIndex = -1;
+    let book = getCurrentBook();
+    
+    if (currentChapter > 1) {
+        openChapter(book.name, currentIsNT, currentChapter - 1);
+    } else {
+        const testament = currentIsNT ? activeData.NT : activeData.OT;
+        if (currentBookIndex > 0) {
+            let prevBook = testament[currentBookIndex - 1];
+            openChapter(prevBook.name, currentIsNT, prevBook.chapters.length - 1);
+        } else if (currentIsNT && activeData.OT.length > 0) {
+            let otBook = activeData.OT[activeData.OT.length - 1];
+            openChapter(otBook.name, false, otBook.chapters.length - 1);
+        }
+    }
+}
+
+function nextChapter(autoPlay = false) {
+    cancelSpeech();
+    playingIndex = -1;
+    let book = getCurrentBook();
+    
+    if (currentChapter < book.chapters.length - 1) {
+        openChapter(book.name, currentIsNT, currentChapter + 1);
+    } else {
+        const testament = currentIsNT ? activeData.NT : activeData.OT;
+        if (currentBookIndex < testament.length - 1) {
+            let nextBook = testament[currentBookIndex + 1];
+            openChapter(nextBook.name, currentIsNT, 1);
+        } else if (!currentIsNT && activeData.NT.length > 0) {
+            let ntBook = activeData.NT[0];
+            openChapter(ntBook.name, true, 1);
+        }
+    }
+
+    if (autoPlay && synth) {
+        setTimeout(() => togglePlay(), 500);
+    }
+}
+
+/* =========================================
+   SETTINGS & THEMING (NATIVE MODALS)
+========================================= */
+function openSettings() {
+    document.getElementById('setTheme').value = state.theme;
+    
+    const themeSelect = document.getElementById('setTheme');
+    document.getElementById('themeDisplay').innerText = themeSelect.options[themeSelect.selectedIndex].text;
+    
+    document.getElementById('setFontFam').value = state.fontFamily;
+    const fontSelect = document.getElementById('setFontFam');
+    document.getElementById('fontFamDisplay').innerText = fontSelect.options[fontSelect.selectedIndex].text;
+    
+    document.getElementById('fontSizeDisplay').innerText = state.fontSize;
+    document.getElementById('rateDisplay').innerText = state.rate.toFixed(1);
+    document.getElementById('setPanic').checked = state.panicEnabled;
+    
+    document.getElementById('setSource').value = state.source;
+    const sourceSelect = document.getElementById('setSource');
+    document.getElementById('sourceDisplay').innerText = sourceSelect.options[sourceSelect.selectedIndex].text;
+
+    if (synth) populateVoices();
+    
+    document.getElementById('settingsModal').showModal();
+    pushNavState('modal-settings');
+}
+
+function closeSettings() {
+    document.getElementById('settingsModal').close();
+}
+
+function changeFontSize(delta) {
+    let newVal = state.fontSize + delta;
+    if (newVal >= 12 && newVal <= 32) {
+        state.fontSize = newVal;
+        document.getElementById('fontSizeDisplay').innerText = state.fontSize;
+        applySettings();
+        saveState();
+    }
+}
+
+function changeSpeechRate(delta) {
+    let newVal = state.rate + delta;
+    if (newVal >= 0.5 && newVal <= 2.0) {
+        state.rate = newVal;
+        document.getElementById('rateDisplay').innerText = state.rate.toFixed(1);
+        saveState();
+    }
+}
+
+document.getElementById('setTheme').addEventListener('change', (e) => { 
+    state.theme = e.target.value; 
+    document.getElementById('themeDisplay').innerText = e.target.options[e.target.selectedIndex].text;
+    applySettings(); 
+    saveState(); 
+});
+
+document.getElementById('setFontFam').addEventListener('change', (e) => { 
+    state.fontFamily = e.target.value; 
+    document.getElementById('fontFamDisplay').innerText = e.target.options[e.target.selectedIndex].text;
+    applySettings(); 
+    saveState(); 
+});
+
+document.getElementById('setVoice').addEventListener('change', (e) => { 
+    state.voiceURI = e.target.value; 
+    document.getElementById('voiceDisplay').innerText = e.target.options[e.target.selectedIndex].text;
+    saveState(); 
+});
+
+document.getElementById('setPanic').addEventListener('change', (e) => { 
+    state.panicEnabled = e.target.checked; 
+    saveState(); 
+    document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none';
+    updateDynamicManifest();
+});
+
+document.getElementById('setSource').addEventListener('change', async (e) => { 
+    state.source = e.target.value; 
+    document.getElementById('sourceDisplay').innerText = e.target.options[e.target.selectedIndex].text;
+    saveState(); 
+    
+    if (state.secretUnlocked) {
+        document.body.classList.add('is-loading');
+        await populateTranslations();
+        document.getElementById('transSelect').value = state.translation;
+        activeData = { OT: [], NT: [] };
+        const success = await loadBibleData();
+        if(success) renderHome();
+    }
+});
+
+document.getElementById('transSelect').addEventListener('change', async (e) => {
+    await switchTranslation(e.target.value);
+    renderHome();
+});
+
+function applySettings() {
+    document.documentElement.setAttribute('data-theme', state.theme);
+    document.documentElement.style.setProperty('--reader-font-family', state.fontFamily);
+    document.documentElement.style.setProperty('--reader-font-size', state.fontSize + 'px');
+}
+
+function populateVoices() {
+    if (!synth) return;
+    voices = synth.getVoices();
+    const select = document.getElementById('setVoice');
+    select.innerHTML = '';
+    
+    let defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.innerText = 'System Default';
+    select.appendChild(defaultOpt);
+
+    voices.forEach(v => {
+        let opt = document.createElement('option');
+        opt.value = v.voiceURI;
+        opt.innerText = `${v.name} (${v.lang})`;
+        select.appendChild(opt);
+    });
+    
+    if (state.voiceURI && select.querySelector(`option[value="${state.voiceURI}"]`)) {
+        select.value = state.voiceURI;
+    } else {
+        select.value = '';
+    }
+    
+    if (select.selectedIndex >= 0) {
+        document.getElementById('voiceDisplay').innerText = select.options[select.selectedIndex].text;
+    }
+}
+
+if (synth && synth.onvoiceschanged !== undefined) {
+    synth.onvoiceschanged = populateVoices;
+}
+
+/* =========================================
+   PANIC LOGIC
+========================================= */
+function triggerPanic() {
+    cancelSpeech();
+    playingIndex = -1;
+    clearSelection();
+    if (state.panicEnabled) {
+        state.secretUnlocked = false;
+        showCalculator();
+    }
+}
+
+window.onload = init;
+
+</script>
+</body>
+</html>
