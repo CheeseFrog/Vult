@@ -756,7 +756,11 @@ function init() {
     // Delay manifest generation slightly so it doesn't block critical render
     setTimeout(updateDynamicManifest, 100); 
     
-    history.replaceState({ view: 'calc' }, '');
+    // Add a buffer of history states to prevent premature exit on back navigation
+    history.replaceState({ view: 'base' }, '');
+    history.pushState({ view: 'buffer' }, '');
+    history.pushState({ view: 'buffer' }, '');
+    history.pushState({ view: 'calc' }, '');
     
     if (!state.panicEnabled) {
         state.secretUnlocked = true;
