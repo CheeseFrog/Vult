@@ -58,7 +58,6 @@
             -webkit-tap-highlight-color: transparent; 
             -webkit-touch-callout: none;
             -webkit-user-select: none;
-            -moz-user-select: none;
             user-select: none;
         }
         
@@ -128,8 +127,8 @@
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            padding: 8px 16px; /* Reduced vertical padding to prevent control bloating */
-            min-height: 52px;  /* Locks all rows to exactly 52px visually */
+            padding: 8px 16px; 
+            min-height: 52px; 
             border-bottom: 1px solid var(--border-color); 
             background: var(--surface-color); 
             cursor: pointer; 
@@ -389,6 +388,17 @@
         <button class="modal-btn" onclick="closeHelp()">Close</button>
     </dialog>
 
+    <!-- MANUAL INSTALL INSTRUCTIONS MODAL (Fallback) -->
+    <dialog id="iosInstallModal">
+        <h3>Install App</h3>
+        <p style="text-align:center; line-height: 1.6; color: var(--text-muted); margin-bottom: 20px;">
+            To install this app on your iPhone or iPad:<br><br>
+            1. Tap the <span class="material-icons-round" style="vertical-align: middle; font-size: 1.2em; color: var(--primary-color);">ios_share</span> <b>Share</b> button at the bottom of Safari.<br><br>
+            2. Scroll down and select <b>Add to Home Screen</b>.
+        </p>
+        <button class="modal-btn" onclick="document.getElementById('iosInstallModal').close()">Got it</button>
+    </dialog>
+
     <!-- SETTINGS MODAL (Native Dialog) -->
     <dialog id="settingsModal">
         <h3>Settings</h3>
@@ -480,8 +490,8 @@
         </div>
 
         <div class="ios-list">
-            <!-- Install App Row -->
-            <div class="ios-row" id="installRowContainer" onclick="triggerInstall()" style="display: none; cursor: pointer;">
+            <!-- Install App Row (Always visible) -->
+            <div class="ios-row" id="installRowContainer" onclick="handleInstallClick()" style="cursor: pointer;">
                 <div class="ios-row-label">Install to Home Screen</div>
                 <div class="ios-row-control">
                     <span class="material-icons-round" style="color: var(--primary-color);">install_desktop</span>
@@ -626,18 +636,42 @@ let isPlaying = false;
 let currentUtterance = null;
 let wakeLock = null;
 let activeView = 'home'; 
-
-// Store metadata / directions for GetBible translations dynamically
 let translationMeta = {};
 
-// PWA Install Prompt Capture & Dynamic Manifest Generation
+// PWA Install Prompt Capture
 let deferredPrompt = null;
 
+/* =========================================
+   PWA DYNAMIC MANIFEST & INSTALL LOGIC
+========================================= */
 function updateDynamicManifest() {
     const appName = state.panicEnabled ? "Calculator" : "Vult";
     
-    const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512"><rect width="512" height="512" rx="120" fill="#000"/><text x="256" y="345" font-size="280" font-family="-apple-system, sans-serif" font-weight="bold" fill="#fff" text-anchor="middle">±</text></svg>`;
-    const iconDataUri = `data:image/svg+xml;base64,${btoa(svgIcon)}`;
+    // Draw robust PNG icon using Canvas instead of SVG to guarantee Chrome compatibility
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    // Draw Background
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    const r = 120;
+    ctx.moveTo(r, 0);
+    ctx.lineTo(512-r, 0); ctx.arcTo(512, 0, 512, r, r);
+    ctx.lineTo(512, 512-r); ctx.arcTo(512, 512, 512-r, 512, r);
+    ctx.lineTo(r, 512); ctx.arcTo(0, 512, 0, 512-r, r);
+    ctx.lineTo(0, r); ctx.arcTo(0, 0, r, 0, r);
+    ctx.fill();
+    
+    // Draw Text
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 280px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('±', 256, 276); // offset for center alignment
+    
+    const iconDataUri = canvas.toDataURL('image/png');
 
     const manifestObj = {
         name: appName,
@@ -646,13 +680,7 @@ function updateDynamicManifest() {
         display: "standalone",
         background_color: "#000000",
         theme_color: "#000000",
-        icons: [
-            {
-                src: iconDataUri,
-                sizes: "512x512",
-                type: "image/svg+xml"
-            }
-        ]
+        icons: [{ src: iconDataUri, sizes: "512x512", type: "image/png" }]
     };
 
     const stringManifest = JSON.stringify(manifestObj);
@@ -660,41 +688,29 @@ function updateDynamicManifest() {
     const manifestURL = URL.createObjectURL(blob);
     
     const manifestLink = document.getElementById('dynamicManifest');
-    if (manifestLink) {
-        manifestLink.setAttribute('href', manifestURL);
-    }
+    if (manifestLink) manifestLink.setAttribute('href', manifestURL);
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    updateInstallButtonDisplay();
 });
 
 window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
-    updateInstallButtonDisplay();
 });
 
-function updateInstallButtonDisplay() {
-    const installRowContainer = document.getElementById('installRowContainer');
-    if (installRowContainer) {
-        if (deferredPrompt) {
-            installRowContainer.style.display = 'flex';
-        } else {
-            installRowContainer.style.display = 'none';
+async function handleInstallClick() {
+    if (deferredPrompt) {
+        updateDynamicManifest();
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            deferredPrompt = null;
         }
-    }
-}
-
-async function triggerInstall() {
-    if (!deferredPrompt) return;
-    updateDynamicManifest();
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-        deferredPrompt = null;
-        document.getElementById('installRowContainer').style.display = 'none';
+    } else {
+        // Show manual instructions modal for iOS or browsers that don't support the install event
+        document.getElementById('iosInstallModal').showModal();
     }
 }
 
@@ -711,16 +727,10 @@ function pushNavState(viewName) {
 }
 
 window.onpopstate = function (event) {
-    const settingsModal = document.getElementById('settingsModal');
-    const helpModal = document.getElementById('helpModal');
-    
-    if (settingsModal && settingsModal.open) {
-        closeSettings();
-        return;
-    }
-    if (helpModal && helpModal.open) {
-        closeHelp();
-        return;
+    const dialogs = ['settingsModal', 'helpModal', 'iosInstallModal'];
+    for(let id of dialogs) {
+        let el = document.getElementById(id);
+        if (el && el.open) { el.close(); return; }
     }
 
     const navBackBtn = document.getElementById('navBack');
@@ -736,17 +746,15 @@ window.onpopstate = function (event) {
 ========================================= */
 function init() {
     loadState();
-    
-    if (!state.source) {
-        state.source = 'getbible';
-        saveState();
-    }
+    if (!state.source) { state.source = 'getbible'; saveState(); }
     
     applySettings();
     checkSpeechSupport();
     setupPlayButton();
     setupDialogDismiss();
-    updateDynamicManifest();
+    
+    // Delay manifest generation slightly so it doesn't block critical render
+    setTimeout(updateDynamicManifest, 100); 
     
     history.replaceState({ view: 'calc' }, '');
     
@@ -804,18 +812,13 @@ function setupPlayButton() {
 
 async function requestWakeLock() {
     if ('wakeLock' in navigator && document.visibilityState === 'visible') {
-        try {
-            wakeLock = await navigator.wakeLock.request('screen');
-        } catch (err) {
-            console.error(`Wake Lock error: ${err.name}, ${err.message}`);
-        }
+        try { wakeLock = await navigator.wakeLock.request('screen'); } 
+        catch (err) { console.error(`Wake Lock error: ${err.message}`); }
     }
 }
 
 function releaseWakeLock() {
-    if (wakeLock !== null) {
-        wakeLock.release().then(() => { wakeLock = null; });
-    }
+    if (wakeLock !== null) wakeLock.release().then(() => { wakeLock = null; });
 }
 
 document.addEventListener('visibilitychange', async () => {
@@ -827,7 +830,6 @@ document.addEventListener('visibilitychange', async () => {
 function loadState() {
     const saved = localStorage.getItem('vult_state');
     if (saved) state = { ...state, ...JSON.parse(saved) };
-    
     if (localStorage.getItem('vult_hideHelp')) {
         document.getElementById('calcHelpBtn').style.display = 'none';
     }
@@ -898,7 +900,7 @@ async function populateTranslations() {
             const res = await fetch('https://api.getbible.net/v2/translations.json');
             const data = await res.json();
             
-            translationMeta = data; // Cache metadata containing direction properties
+            translationMeta = data; 
             let transArray = Object.values(data).sort((a,b) => a.abbreviation.localeCompare(b.abbreviation));
             
             transArray.forEach(t => {
@@ -959,7 +961,6 @@ async function loadBibleData() {
                         let versesData = Array.isArray(chapItem) ? chapItem : (chapItem.verses || chapItem);
                         
                         const vArray = Array.isArray(versesData) ? versesData : Object.values(versesData);
-                        vArray.specials = versesData.specials; // preserve properties if any
                         vArray.forEach((v, vIdx) => {
                             let vNum = v.verse || v.n || (vIdx + 1);
                             let text = v.text || v.txt || (typeof v === 'string' ? v : "");
@@ -981,14 +982,13 @@ async function loadBibleData() {
                 if (!onlineRes.ok) throw new Error("Online file request returned " + onlineRes.status);
                 text = await onlineRes.text();
             } catch (onlineErr) {
-                console.warn("Could not fetch remote translation file, falling back to local storage.", onlineErr);
+                console.warn("Could not fetch remote file, falling back to local storage.");
                 const localRes = await fetch(`${state.translation}.txt`);
                 if (!localRes.ok) throw new Error("Local file request returned " + localRes.status);
                 text = await localRes.text();
             }
             
             const lines = text.split(/\r?\n/);
-            
             for (let line of lines) {
                 if (!line.trim()) continue;
                 let match = line.match(/^([A-Za-z\s\d]+?)[\s\t]+(\d+)[:\t](\d+)[\s\t]+(.*)$/);
@@ -1025,14 +1025,11 @@ async function loadBibleData() {
         }
 
         if (splitIdx === 0) {
-            activeData.OT = [];
-            activeData.NT = allBooks;
+            activeData.OT = []; activeData.NT = allBooks;
         } else if (splitIdx > 0) {
-            activeData.OT = allBooks.slice(0, splitIdx);
-            activeData.NT = allBooks.slice(splitIdx);
+            activeData.OT = allBooks.slice(0, splitIdx); activeData.NT = allBooks.slice(splitIdx);
         } else {
-            activeData.OT = allBooks;
-            activeData.NT = [];
+            activeData.OT = allBooks; activeData.NT = [];
         }
 
         document.body.classList.remove('is-loading');
@@ -1041,7 +1038,7 @@ async function loadBibleData() {
     } catch (e) {
         console.error("Data Load Error:", e);
         document.body.classList.remove('is-loading');
-        alert(`Error loading ${state.translation.toUpperCase()} from ${state.source}.\nPlease ensure you have an internet connection or the local file exists.`);
+        alert(`Error loading ${state.translation.toUpperCase()}.\nPlease check your internet connection.`);
         return false;
     }
 }
@@ -1075,19 +1072,22 @@ async function openBibleApp() {
     document.getElementById('app-bible').style.display = 'flex';
     document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none';
     
+    // Explicitly add loading state immediately at start of sequence
+    document.body.classList.add('is-loading');
+    
     await populateTranslations();
     document.getElementById('transSelect').value = state.translation;
 
     const success = await loadBibleData();
+    
+    // Ensure loading state is cleaned up after sequence ends
+    document.body.classList.remove('is-loading');
+    
     if (success && state.lastBook && state.lastChap) {
         let isNT = activeData.NT.some(b => b.name === state.lastBook.name);
         let exists = isNT || activeData.OT.some(b => b.name === state.lastBook.name);
-        
-        if(exists) {
-            openChapter(state.lastBook.name, isNT, state.lastChap, false);
-        } else {
-            renderHome();
-        }
+        if(exists) openChapter(state.lastBook.name, isNT, state.lastChap, false);
+        else renderHome();
     } else {
         renderHome();
     }
@@ -1127,18 +1127,12 @@ function renderHome() {
     ntGrid.innerHTML = ''; otGrid.innerHTML = '';
     
     if (activeData.NT.length === 0) {
-        ntDetails.style.display = 'none';
-        otDetails.style.display = 'block';
-        otSummary.innerText = 'Books';
+        ntDetails.style.display = 'none'; otDetails.style.display = 'block'; otSummary.innerText = 'Books';
     } else if (activeData.OT.length === 0) {
-        otDetails.style.display = 'none';
-        ntDetails.style.display = 'block';
-        ntSummary.innerText = 'Books';
+        otDetails.style.display = 'none'; ntDetails.style.display = 'block'; ntSummary.innerText = 'Books';
     } else {
-        ntDetails.style.display = 'block';
-        otDetails.style.display = 'block';
-        ntSummary.innerText = 'New Testament';
-        otSummary.innerText = 'Old Testament';
+        ntDetails.style.display = 'block'; otDetails.style.display = 'block';
+        ntSummary.innerText = 'New Testament'; otSummary.innerText = 'Old Testament';
     }
 
     const renderGrid = (data, grid, isNT) => {
@@ -1201,7 +1195,6 @@ function openBook(index, isNT) {
     } else {
         bkmList.innerHTML = '<p style="color:var(--text-muted); font-size:0.9em; padding: 0 10px;">No bookmarks yet.</p>';
     }
-
     pushNavState('chapters');
 }
 
@@ -1239,7 +1232,6 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
 
     const verses = book.chapters[chapterNum];
     
-    // Determine text direction from API metadata if available (GetBible), fallback to LTR
     let textDirection = 'ltr';
     if (state.source === 'getbible' && translationMeta[state.translation] && translationMeta[state.translation].direction) {
         textDirection = translationMeta[state.translation].direction.toLowerCase();
@@ -1253,9 +1245,7 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
         p.id = `v${vNum}`;
         p.innerHTML = `<span class="verse-num">${vNum}</span>${text}`;
         
-        if (isVerseBookmarked(vNum)) {
-            p.classList.add('bookmarked');
-        }
+        if (isVerseBookmarked(vNum)) p.classList.add('bookmarked');
 
         p.onclick = () => toggleVerseSelection(p, vNum);
         
@@ -1282,9 +1272,7 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
     if (scrollToVerse && targetVerseNum) {
         setTimeout(() => {
             let targetEl = document.getElementById(`v${targetVerseNum}`);
-            if (targetEl) {
-                targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }, 100);
     } else {
         readerView.scrollTop = 0;
@@ -1327,9 +1315,7 @@ function getSelectedTextData() {
     const book = getCurrentBook();
     const sortedVerses = Array.from(selectedVerses).sort((a,b) => a-b);
     let textOut = "";
-    sortedVerses.forEach(vNum => {
-        textOut += `[${vNum}] ${book.chapters[currentChapter][vNum]} `;
-    });
+    sortedVerses.forEach(vNum => { textOut += `[${vNum}] ${book.chapters[currentChapter][vNum]} `; });
     
     let ref = `${book.name} ${currentChapter}:`;
     if(sortedVerses.length === 1) ref += sortedVerses[0];
@@ -1354,14 +1340,9 @@ function copySingleVerse(book, chap, verseNum, text) {
 
 async function shareSelected() {
     const fullText = getFullSelectedText();
-    
     if (navigator.share) {
-        try {
-            await navigator.share({ title: 'Vult Bible App', text: fullText });
-            clearSelection();
-        } catch (err) {
-            console.log('User cancelled or error sharing:', err);
-        }
+        try { await navigator.share({ title: 'Vult Bible App', text: fullText }); clearSelection(); } 
+        catch (err) { console.log('Share error:', err); }
     } else {
         copySelected();
         alert("Text copied to clipboard!");
@@ -1371,12 +1352,7 @@ async function shareSelected() {
 function isVerseBookmarked(vNum) {
     if (currentBookIndex < 0) return false;
     const bookName = getCurrentBook().name;
-    return state.bookmarks.some(b => 
-        b.trans === state.translation && 
-        b.book === bookName && 
-        b.chapter === currentChapter && 
-        b.verse === vNum
-    );
+    return state.bookmarks.some(b => b.trans === state.translation && b.book === bookName && b.chapter === currentChapter && b.verse === vNum);
 }
 
 function toggleBookmarks() {
@@ -1385,9 +1361,7 @@ function toggleBookmarks() {
     
     if (allBookmarked) {
         selectedVerses.forEach(vNum => {
-            state.bookmarks = state.bookmarks.filter(b => 
-                !(b.trans === state.translation && b.book === bookName && b.chapter === currentChapter && b.verse === vNum)
-            );
+            state.bookmarks = state.bookmarks.filter(b => !(b.trans === state.translation && b.book === bookName && b.chapter === currentChapter && b.verse === vNum));
             const el = document.getElementById(`v${vNum}`);
             if(el) el.classList.remove('bookmarked');
         });
@@ -1397,9 +1371,7 @@ function toggleBookmarks() {
             if (!isVerseBookmarked(vNum)) {
                 state.bookmarks.push({
                     ref: `${bookName} ${currentChapter}:${vNum}`,
-                    book: bookName,
-                    chapter: currentChapter,
-                    verse: vNum,
+                    book: bookName, chapter: currentChapter, verse: vNum,
                     text: book.chapters[currentChapter][vNum].substring(0, 50) + '...',
                     trans: state.translation
                 });
@@ -1408,9 +1380,7 @@ function toggleBookmarks() {
             }
         });
     }
-    
-    saveState();
-    clearSelection();
+    saveState(); clearSelection();
 }
 
 function clearSelection() {
@@ -1429,7 +1399,6 @@ function togglePlay() {
         if (synth) synth.cancel();
         releaseWakeLock();
         document.getElementById('playIcon').innerText = 'play_circle';
-        
         document.querySelectorAll('.verse.playing').forEach(el => el.classList.add('paused'));
     } else {
         let startIdx = 1;
@@ -1437,51 +1406,37 @@ function togglePlay() {
         
         if (playingEl) {
             let vMatch = playingEl.id.match(/^v(\d+)$/);
-            if (vMatch) {
-                startIdx = parseInt(vMatch[1]);
-            }
+            if (vMatch) startIdx = parseInt(vMatch[1]);
         } else if (playingIndex !== -1) {
             startIdx = playingIndex;
         } else if (selectedVerses.size > 0) {
             startIdx = Math.min(...Array.from(selectedVerses));
             clearSelection();
         }
-        
         playVerse(startIdx);
     }
 }
 
 function playVerse(vNum) {
     if (!synth) return;
-    
     isPlaying = false;
     if (synth) synth.cancel();
     
     const verses = getCurrentBook().chapters[currentChapter];
-    
     while(!verses[vNum] && vNum < verses.length) vNum++;
     
-    if (vNum >= verses.length) {
-        nextChapter(true);
-        return;
-    }
+    if (vNum >= verses.length) { nextChapter(true); return; }
 
     playingIndex = vNum;
     highlightPlayingVerse();
 
-    let text = verses[vNum];
-    currentUtterance = new SpeechSynthesisUtterance(text);
-    
+    currentUtterance = new SpeechSynthesisUtterance(verses[vNum]);
     if (state.voiceURI) {
         let voice = voices.find(v => v.voiceURI === state.voiceURI);
         if (voice) currentUtterance.voice = voice;
     }
     currentUtterance.rate = state.rate;
-    
-    currentUtterance.onend = () => {
-        if (!isPlaying) return;
-        playVerse(vNum + 1);
-    };
+    currentUtterance.onend = () => { if (isPlaying) playVerse(vNum + 1); };
 
     isPlaying = true;
     requestWakeLock();
@@ -1491,8 +1446,7 @@ function playVerse(vNum) {
 
 function highlightPlayingVerse() {
     document.querySelectorAll('.verse.playing').forEach(el => {
-        el.classList.remove('playing');
-        el.classList.remove('paused');
+        el.classList.remove('playing'); el.classList.remove('paused');
     });
     let el = document.getElementById(`v${playingIndex}`);
     if (el) {
@@ -1502,22 +1456,15 @@ function highlightPlayingVerse() {
 }
 
 function cancelSpeech() {
-    isPlaying = false;
-    currentUtterance = null;
-    releaseWakeLock();
+    isPlaying = false; currentUtterance = null; releaseWakeLock();
     if (synth) synth.cancel();
     document.getElementById('playIcon').innerText = 'play_circle';
-    document.querySelectorAll('.verse.playing').forEach(el => {
-        el.classList.remove('playing');
-        el.classList.remove('paused');
-    });
+    document.querySelectorAll('.verse.playing').forEach(el => { el.classList.remove('playing'); el.classList.remove('paused'); });
 }
 
 function prevChapter() {
-    cancelSpeech();
-    playingIndex = -1;
+    cancelSpeech(); playingIndex = -1;
     let book = getCurrentBook();
-    
     if (currentChapter > 1) {
         openChapter(book.name, currentIsNT, currentChapter - 1);
     } else {
@@ -1533,8 +1480,7 @@ function prevChapter() {
 }
 
 function nextChapter(autoPlay = false) {
-    cancelSpeech();
-    playingIndex = -1;
+    cancelSpeech(); playingIndex = -1;
     let book = getCurrentBook();
     
     if (currentChapter < book.chapters.length - 1) {
@@ -1549,18 +1495,14 @@ function nextChapter(autoPlay = false) {
             openChapter(ntBook.name, true, 1);
         }
     }
-
-    if (autoPlay && synth) {
-        setTimeout(() => togglePlay(), 500);
-    }
+    if (autoPlay && synth) setTimeout(() => togglePlay(), 500);
 }
 
 /* =========================================
-   SETTINGS & THEMING (NATIVE MODALS)
+   SETTINGS & THEMING
 ========================================= */
 function openSettings() {
     document.getElementById('setTheme').value = state.theme;
-    
     const themeSelect = document.getElementById('setTheme');
     document.getElementById('themeDisplay').innerText = themeSelect.options[themeSelect.selectedIndex].text;
     
@@ -1582,17 +1524,14 @@ function openSettings() {
     pushNavState('modal-settings');
 }
 
-function closeSettings() {
-    document.getElementById('settingsModal').close();
-}
+function closeSettings() { document.getElementById('settingsModal').close(); }
 
 function changeFontSize(delta) {
     let newVal = state.fontSize + delta;
     if (newVal >= 12 && newVal <= 32) {
         state.fontSize = newVal;
         document.getElementById('fontSizeDisplay').innerText = state.fontSize;
-        applySettings();
-        saveState();
+        applySettings(); saveState();
     }
 }
 
@@ -1608,15 +1547,13 @@ function changeSpeechRate(delta) {
 document.getElementById('setTheme').addEventListener('change', (e) => { 
     state.theme = e.target.value; 
     document.getElementById('themeDisplay').innerText = e.target.options[e.target.selectedIndex].text;
-    applySettings(); 
-    saveState(); 
+    applySettings(); saveState(); 
 });
 
 document.getElementById('setFontFam').addEventListener('change', (e) => { 
     state.fontFamily = e.target.value; 
     document.getElementById('fontFamDisplay').innerText = e.target.options[e.target.selectedIndex].text;
-    applySettings(); 
-    saveState(); 
+    applySettings(); saveState(); 
 });
 
 document.getElementById('setVoice').addEventListener('change', (e) => { 
@@ -1665,42 +1602,30 @@ function populateVoices() {
     select.innerHTML = '';
     
     let defaultOpt = document.createElement('option');
-    defaultOpt.value = '';
-    defaultOpt.innerText = 'System Default';
+    defaultOpt.value = ''; defaultOpt.innerText = 'System Default';
     select.appendChild(defaultOpt);
 
     voices.forEach(v => {
         let opt = document.createElement('option');
-        opt.value = v.voiceURI;
-        opt.innerText = `${v.name} (${v.lang})`;
+        opt.value = v.voiceURI; opt.innerText = `${v.name} (${v.lang})`;
         select.appendChild(opt);
     });
     
-    if (state.voiceURI && select.querySelector(`option[value="${state.voiceURI}"]`)) {
-        select.value = state.voiceURI;
-    } else {
-        select.value = '';
-    }
+    if (state.voiceURI && select.querySelector(`option[value="${state.voiceURI}"]`)) select.value = state.voiceURI;
+    else select.value = '';
     
-    if (select.selectedIndex >= 0) {
-        document.getElementById('voiceDisplay').innerText = select.options[select.selectedIndex].text;
-    }
+    if (select.selectedIndex >= 0) document.getElementById('voiceDisplay').innerText = select.options[select.selectedIndex].text;
 }
 
-if (synth && synth.onvoiceschanged !== undefined) {
-    synth.onvoiceschanged = populateVoices;
-}
+if (synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = populateVoices;
 
 /* =========================================
    PANIC LOGIC
 ========================================= */
 function triggerPanic() {
-    cancelSpeech();
-    playingIndex = -1;
-    clearSelection();
+    cancelSpeech(); playingIndex = -1; clearSelection();
     if (state.panicEnabled) {
-        state.secretUnlocked = false;
-        showCalculator();
+        state.secretUnlocked = false; showCalculator();
     }
 }
 
