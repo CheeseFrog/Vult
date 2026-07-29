@@ -6,8 +6,8 @@
     <title>Calculator</title>
     <!-- Dynamic Web Manifest Link -->
     <link rel="manifest" id="dynamicManifest">
-    <!-- Bulletproof classic Material Icons Round import -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <!-- Modern Material Symbols Rounded import -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
     <style>
         :root {
             /* iOS Calculator Colors */
@@ -145,7 +145,7 @@
         .ios-select-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; appearance: none; -webkit-appearance: none; }
         .ios-select-display { color: var(--text-muted); font-size: 1rem; pointer-events: none; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; text-align: right; }
         .ios-select-wrapper { display: flex; align-items: center; color: var(--text-muted); }
-        .ios-select-wrapper .material-icons-round { font-size: 20px; margin-left: 4px; pointer-events: none; }
+        .ios-select-wrapper .material-symbols-rounded { font-size: 20px; margin-left: 4px; pointer-events: none; }
         
         /* Plus/Minus Steppers */
         .ios-stepper { display: flex; align-items: stretch; height: 2em; background: var(--bg-color); border-radius: 0.5em; overflow: hidden; border: 1px solid var(--border-color); z-index: 20; position: relative; font-size: 1rem; }
@@ -317,7 +317,10 @@
         .fab-panic { background: #ff3b30; color: white; width: 56px; height: 56px; bottom: 20px; right: 20px; }
         .panic-symbol { font-size: 28px; line-height: 1; font-weight: 400; font-family: '-apple-system', sans-serif; }
         
-        /* Selection FABs (Bottom Left) */
+        /* Resume FAB (Bottom Left - Home/Chapter view) */
+        #resumeFab { background: var(--surface-color); color: var(--primary-color); width: 56px; height: 56px; bottom: 20px; left: 20px; display: none; }
+
+        /* Selection FABs (Bottom Left - Reader view) */
         .selection-fabs { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: row; gap: 15px; transform: scale(0); transition: transform 0.2s, bottom 0.3s; z-index: 40; pointer-events: none; }
         .selection-fabs.visible { transform: scale(1); pointer-events: auto; }
         .fab-action { background: var(--surface-color); color: var(--primary-color); width: 48px; height: 48px; position: relative; }
@@ -326,9 +329,9 @@
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--header-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; transform: translateY(100%); transition: transform 0.3s; z-index: 40; }
         .bottom-bar.visible { transform: translateY(0); }
         .bb-btn { background: none; border: none; color: var(--text-color); padding: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .bb-btn .material-icons-round { font-size: 32px; }
+        .bb-btn .material-symbols-rounded { font-size: 32px; }
         .bb-btn.play-btn { color: var(--primary-color); }
-        .bb-btn.play-btn .material-icons-round { font-size: 48px; }
+        .bb-btn.play-btn .material-symbols-rounded { font-size: 48px; }
 
         /* CSS-ONLY: Shift UP Left FABs and Right Panic FAB when Bottom Bar is visible */
         #app-bible:has(.bottom-bar.visible) .fab-panic,
@@ -343,7 +346,7 @@
     <!-- CALCULATOR VIEW (Centered) -->
     <div id="app-calculator-wrapper">
         <div id="app-calculator">
-            <div class="calc-help material-icons-round" id="calcHelpBtn">help</div>
+            <div class="calc-help material-symbols-rounded" id="calcHelpBtn">help</div>
             <div class="calc-display" id="calcDisplay">0</div>
             <div class="calc-grid">
                 <button class="calc-btn btn-func" onclick="calcInput('C')">AC</button>
@@ -393,7 +396,7 @@
         <h3>Install App</h3>
         <p style="text-align:center; line-height: 1.6; color: var(--text-muted); margin-bottom: 20px;">
             To install this app on your iPhone or iPad:<br><br>
-            1. Tap the <span class="material-icons-round" style="vertical-align: middle; font-size: 1.2em; color: var(--primary-color);">ios_share</span> <b>Share</b> button at the bottom of Safari.<br><br>
+            1. Tap the <span class="material-symbols-rounded" style="vertical-align: middle; font-size: 1.2em; color: var(--primary-color);">ios_share</span> <b>Share</b> button at the bottom of Safari.<br><br>
             2. Scroll down and select <b>Add to Home Screen</b>.
         </p>
         <button class="modal-btn" onclick="document.getElementById('iosInstallModal').close()">Got it</button>
@@ -410,7 +413,7 @@
                 <div class="ios-row-control">
                     <div class="ios-select-wrapper">
                         <span id="themeDisplay" class="ios-select-display">Dark</span>
-                        <span class="material-icons-round">chevron_right</span>
+                        <span class="material-symbols-rounded">chevron_right</span>
                     </div>
                 </div>
                 <select id="setTheme" class="ios-select-overlay">
@@ -425,7 +428,7 @@
                 <div class="ios-row-control">
                     <div class="ios-select-wrapper">
                         <span id="fontFamDisplay" class="ios-select-display">Sans-serif</span>
-                        <span class="material-icons-round">chevron_right</span>
+                        <span class="material-symbols-rounded">chevron_right</span>
                     </div>
                 </div>
                 <select id="setFontFam" class="ios-select-overlay">
@@ -453,7 +456,7 @@
                 <div class="ios-row-control">
                     <div class="ios-select-wrapper">
                         <span id="sourceDisplay" class="ios-select-display">GetBible</span>
-                        <span class="material-icons-round">chevron_right</span>
+                        <span class="material-symbols-rounded">chevron_right</span>
                     </div>
                 </div>
                 <select id="setSource" class="ios-select-overlay">
@@ -482,7 +485,7 @@
                 <div class="ios-row-control">
                     <div class="ios-select-wrapper">
                         <span id="voiceDisplay" class="ios-select-display">System Default</span>
-                        <span class="material-icons-round">chevron_right</span>
+                        <span class="material-symbols-rounded">chevron_right</span>
                     </div>
                 </div>
                 <select id="setVoice" class="ios-select-overlay"></select>
@@ -494,7 +497,7 @@
             <div class="ios-row" id="installRowContainer" onclick="handleInstallClick()" style="cursor: pointer;">
                 <div class="ios-row-label">Install to Home Screen</div>
                 <div class="ios-row-control">
-                    <span class="material-icons-round" style="color: var(--primary-color);">install_desktop</span>
+                    <span class="material-symbols-rounded" style="color: var(--primary-color);">install_desktop</span>
                 </div>
             </div>
             <!-- Panic Toggle Row wrapped in label for native full-row clickability -->
@@ -515,7 +518,7 @@
         <header>
             <div class="header-left">
                 <button class="header-btn" id="navBack" style="display: none;">
-                    <span class="material-icons-round">arrow_back_ios</span>
+                    <span class="material-symbols-rounded">arrow_back_ios</span>
                 </button>
                 <select class="translation-select" id="transSelect"></select>
             </div>
@@ -524,7 +527,7 @@
             
             <div class="header-right">
                 <button class="header-btn" onclick="openSettings()">
-                    <span class="material-icons-round">settings</span>
+                    <span class="material-symbols-rounded">settings</span>
                 </button>
             </div>
             
@@ -566,30 +569,34 @@
             <div id="readerContent"></div>
         </div>
 
+        <!-- RESUME FAB (Bottom Left - Home & Chapters view) -->
+        <button class="fab" id="resumeFab" onclick="resumeLastLocation()">
+            <span class="material-symbols-rounded">source_notes</span>
+        </button>
 
-        <!-- SELECTION FABS (Bottom Left) -->
+        <!-- SELECTION FABS (Bottom Left - Reader view) -->
         <div class="selection-fabs" id="selectionFabs">
             <button class="fab fab-action" id="bookmarkFabBtn" onclick="toggleBookmarks()">
-                <span class="material-icons-round" id="bookmarkFabIcon">bookmark</span>
+                <span class="material-symbols-rounded" id="bookmarkFabIcon">bookmark</span>
             </button>
             <button class="fab fab-action" onclick="copySelected()">
-                <span class="material-icons-round">content_copy</span>
+                <span class="material-symbols-rounded">content_copy</span>
             </button>
             <button class="fab fab-action" onclick="shareSelected()">
-                <span class="material-icons-round">share</span>
+                <span class="material-symbols-rounded">share</span>
             </button>
         </div>
 
         <!-- BOTTOM BAR (Reader Navigation & Play) -->
         <div class="bottom-bar" id="bottomBar">
             <button class="bb-btn" onclick="prevChapter()">
-                <span class="material-icons-round">skip_previous</span>
+                <span class="material-symbols-rounded">skip_previous</span>
             </button>
             <button class="bb-btn play-btn" id="playBtn">
-                <span class="material-icons-round" id="playIcon">play_circle</span>
+                <span class="material-symbols-rounded" id="playIcon">play_circle</span>
             </button>
             <button class="bb-btn" onclick="nextChapter()">
-                <span class="material-icons-round">skip_next</span>
+                <span class="material-symbols-rounded">skip_next</span>
             </button>
         </div>
 
@@ -640,6 +647,11 @@ let translationMeta = {};
 
 // PWA Install Prompt Capture
 let deferredPrompt = null;
+
+// History State Management
+let userInteracted = false;
+let isPopState = false;
+let pendingHistory = [];
 
 /* =========================================
    PWA DYNAMIC MANIFEST & INSTALL LOGIC
@@ -715,22 +727,47 @@ async function handleInstallClick() {
 }
 
 /* =========================================
-   HELPERS
+   HELPERS & ROUTING
 ========================================= */
 function getCurrentBook() {
     return currentBookIndex >= 0 ? (currentIsNT ? activeData.NT : activeData.OT)[currentBookIndex] : null;
 }
 
+// Global user interaction listener to bypass browser history restrictions
+const registerInteraction = () => {
+    if (userInteracted) return;
+    userInteracted = true;
+    
+    // Flush buffered history states upon user's first tap
+    pendingHistory.forEach(v => history.pushState({ view: v }, ''));
+    pendingHistory = [];
+};
+document.addEventListener('pointerdown', registerInteraction, { capture: true, once: true });
+document.addEventListener('keydown', registerInteraction, { capture: true, once: true });
+
 function pushNavState(viewName) {
     activeView = viewName;
-    history.pushState({ view: viewName }, '');
+    
+    if (isPopState) return; // Prevent pushing new states when the user is going backwards via hardware Back
+    
+    if (!userInteracted) {
+        pendingHistory.push(viewName);
+    } else {
+        history.pushState({ view: viewName }, '');
+    }
 }
 
 window.onpopstate = function (event) {
+    isPopState = true;
+    
     const dialogs = ['settingsModal', 'helpModal', 'iosInstallModal'];
     for(let id of dialogs) {
         let el = document.getElementById(id);
-        if (el && el.open) { el.close(); return; }
+        if (el && el.open) { 
+            el.close(); 
+            isPopState = false;
+            return; 
+        }
     }
 
     const navBackBtn = document.getElementById('navBack');
@@ -739,6 +776,9 @@ window.onpopstate = function (event) {
     } else if (state.secretUnlocked && state.panicEnabled) {
         triggerPanic();
     }
+    
+    // Reset flag safely after sync UI functions process
+    setTimeout(() => { isPopState = false; }, 10);
 };
 
 /* =========================================
@@ -756,7 +796,8 @@ function init() {
     // Delay manifest generation slightly so it doesn't block critical render
     setTimeout(updateDynamicManifest, 100); 
     
-    history.replaceState({ view: 'calc' }, '');
+    // Initialize base anchor state
+    history.replaceState({ view: 'base' }, '');
     
     if (!state.panicEnabled) {
         state.secretUnlocked = true;
@@ -850,6 +891,9 @@ function showCalculator() {
 }
 
 function calcInput(val) {
+    // Calculator typing functions as a user interaction, safely setting flag early
+    if (!userInteracted) registerInteraction();
+    
     if (val === 'C') {
         displayValue = '0';
         inputBuffer = [];
@@ -1087,10 +1131,8 @@ async function openBibleApp() {
         let isNT = activeData.NT.some(b => b.name === state.lastBook.name);
         let exists = isNT || activeData.OT.some(b => b.name === state.lastBook.name);
         if(exists) {
-            // Inject correct structural history states before deep-linking to reader
             pushNavState('home');
             pushNavState('chapters');
-            
             openChapter(state.lastBook.name, isNT, state.lastChap, false);
         }
         else {
@@ -1114,6 +1156,23 @@ function createBookmarkElement(bm) {
     return div;
 }
 
+function resumeLastLocation() {
+    if (state.lastBook && state.lastChap) {
+        let isNT = activeData.NT.some(b => b.name === state.lastBook.name);
+        let exists = isNT || activeData.OT.some(b => b.name === state.lastBook.name);
+        if(exists) openChapter(state.lastBook.name, isNT, state.lastChap, false);
+    }
+}
+
+function updateResumeFabVisibility() {
+    const resumeFab = document.getElementById('resumeFab');
+    if (state.lastBook && state.lastChap) {
+        resumeFab.style.display = 'flex';
+    } else {
+        resumeFab.style.display = 'none';
+    }
+}
+
 function renderHome() {
     hideAllViews();
     document.getElementById('view-home').classList.add('active');
@@ -1123,6 +1182,8 @@ function renderHome() {
     document.getElementById('transSelect').style.display = 'inline-block';
     
     document.getElementById('bottomBar').classList.remove('visible');
+    
+    updateResumeFabVisibility();
     updateSelectionFabs();
     
     const ntGrid = document.getElementById('ntGrid');
@@ -1178,6 +1239,8 @@ function openBook(index, isNT) {
     document.getElementById('navBack').style.display = 'flex';
     document.getElementById('navBack').onclick = renderHome;
     document.getElementById('transSelect').style.display = 'none';
+    
+    updateResumeFabVisibility();
     
     const book = isNT ? activeData.NT[index] : activeData.OT[index];
     document.getElementById('headerTitle').innerText = book.name;
@@ -1291,6 +1354,7 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
 function hideAllViews() {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('bottomBar').classList.remove('visible');
+    document.getElementById('resumeFab').style.display = 'none';
     updateSelectionFabs();
 }
 
