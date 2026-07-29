@@ -756,11 +756,7 @@ function init() {
     // Delay manifest generation slightly so it doesn't block critical render
     setTimeout(updateDynamicManifest, 100); 
     
-    // Add a buffer of history states to prevent premature exit on back navigation
-    history.replaceState({ view: 'base' }, '');
-    history.pushState({ view: 'buffer' }, '');
-    history.pushState({ view: 'buffer' }, '');
-    history.pushState({ view: 'calc' }, '');
+    history.replaceState({ view: 'calc' }, '');
     
     if (!state.panicEnabled) {
         state.secretUnlocked = true;
@@ -1090,8 +1086,16 @@ async function openBibleApp() {
     if (success && state.lastBook && state.lastChap) {
         let isNT = activeData.NT.some(b => b.name === state.lastBook.name);
         let exists = isNT || activeData.OT.some(b => b.name === state.lastBook.name);
-        if(exists) openChapter(state.lastBook.name, isNT, state.lastChap, false);
-        else renderHome();
+        if(exists) {
+            // Inject correct structural history states before deep-linking to reader
+            pushNavState('home');
+            pushNavState('chapters');
+            
+            openChapter(state.lastBook.name, isNT, state.lastChap, false);
+        }
+        else {
+            renderHome();
+        }
     } else {
         renderHome();
     }
