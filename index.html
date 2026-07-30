@@ -173,74 +173,37 @@
         .header-btn { background: none; border: none; color: var(--primary-color); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
         header h1 { flex: 2; font-size: 1.2rem; font-weight: 600; text-align: center; margin: 0; }
         
-        .translation-select { background: transparent; color: var(--primary-color); border: none; font-size: 1.1rem; outline: none; font-weight: 500; cursor: pointer; appearance: none; -webkit-appearance: none; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .translation-select-wrapper { position: relative; display: flex; align-items: center; color: var(--primary-color); font-weight: 600; font-size: 1.1rem; }
+        .translation-select { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; }
 
-        /* Loading Bar (Below Header) & Loading State */
+        /* Loading Bar & State */
         .loading-bar {
-            position: absolute;
-            bottom: -1px; left: 0; width: 100%; height: 3px;
-            background-color: var(--border-color);
-            display: none;
-            overflow: hidden;
-            z-index: 10;
+            position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px;
+            background-color: var(--border-color); display: none; overflow: hidden; z-index: 10;
         }
         .loading-bar::before {
-            content: '';
-            position: absolute; top: 0; left: -50%; width: 50%; height: 100%;
-            background-color: var(--primary-color);
-            animation: loadingBarAnim 1.5s infinite ease-in-out;
+            content: ''; position: absolute; top: 0; left: -50%; width: 50%; height: 100%;
+            background-color: var(--primary-color); animation: loadingBarAnim 1.5s infinite ease-in-out;
         }
         @keyframes loadingBarAnim {
-            0% { left: -50%; width: 50%; }
-            50% { left: 25%; width: 80%; }
-            100% { left: 100%; width: 50%; }
+            0% { left: -50%; width: 50%; } 50% { left: 25%; width: 80%; } 100% { left: 100%; width: 50%; }
         }
         
         body.is-loading .loading-bar { display: block; }
-        body.is-loading .view {
-            opacity: 0.4 !important;
-            pointer-events: none !important;
-            filter: grayscale(100%) !important;
-        }
+        body.is-loading .view { opacity: 0.4 !important; pointer-events: none !important; filter: grayscale(100%) !important; }
+        body.is-loading #view-home { opacity: 0.4; pointer-events: none; filter: grayscale(100%); }
 
-        /* Home page disabled state during loading via CSS only */
-        body.is-loading #view-home {
-            opacity: 0.4;
-            pointer-events: none;
-            filter: grayscale(100%);
-        }
-
-        /* Collapsible grids & Summary Chevrons */
+        /* Grids & Details */
         details { padding: 10px 20px; }
         details[open] > div { animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        summary { 
-            font-size: 1.2rem; 
-            font-weight: 600; 
-            margin-bottom: 10px; 
-            cursor: pointer; 
-            color: var(--text-color); 
-            list-style: none; 
-            font-variant: all-small-caps; 
-            position: relative;
-            padding-right: 30px;
-        }
+        summary { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; cursor: pointer; color: var(--text-color); list-style: none; font-variant: all-small-caps; position: relative; padding-right: 30px; }
         summary::-webkit-details-marker { display: none; }
         summary::after {
-            content: '';
-            position: absolute;
-            right: 5px;
-            top: calc(50% - 6px);
-            width: 10px;
-            height: 10px;
-            border-right: 2px solid var(--text-muted);
-            border-bottom: 2px solid var(--text-muted);
-            transform: rotate(-45deg); 
-            transition: transform 0.2s ease, top 0.2s ease;
+            content: ''; position: absolute; right: 5px; top: calc(50% - 6px); width: 10px; height: 10px;
+            border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted);
+            transform: rotate(-45deg); transition: transform 0.2s ease, top 0.2s ease;
         }
-        details[open] summary::after {
-            transform: rotate(45deg);
-            top: calc(50% - 8px);
-        }
+        details[open] summary::after { transform: rotate(45deg); top: calc(50% - 8px); }
 
         .book-grid, .chapter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
         .grid-item { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px 5px; text-align: center; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9em; transition: background 0.2s; }
@@ -248,82 +211,48 @@
         
         /* Bookmarks List */
         .bookmark-list { display: flex; flex-direction: column; gap: 10px; }
-        .bookmark-item { 
-            background: var(--surface-color); 
-            border: 1px solid var(--border-color); 
-            padding: 15px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            transition: background 0.2s; 
-        }
-        .bookmark-item:active { 
-            background: var(--border-color); 
-        }
+        .bookmark-item { background: var(--surface-color); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+        .bookmark-item:active { background: var(--border-color); }
         .bookmark-ref { font-weight: 600; color: var(--primary-color); margin-bottom: 5px; }
         .bookmark-text { font-size: 0.85em; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Reader View */
-        #view-reader { 
-            padding: 20px; 
-            padding-bottom: 180px; /* Explicitly set again to override shorthand above */
-            line-height: 1.6; 
-            /* Scoped Reader Styles */
-            font-family: var(--reader-font-family);
-            font-size: var(--reader-font-size);
-        }
+        #view-reader { padding: 20px; padding-bottom: 180px; line-height: 1.6; font-family: var(--reader-font-family); font-size: var(--reader-font-size); }
         .verse { margin-bottom: 10px; cursor: pointer; border-radius: 4px; padding: 5px; transition: background 0.2s, filter 0.2s; }
-        
-        /* RTL-Aware Verse Numbers using logical margin */
         .verse-num { font-weight: 600; color: var(--primary-color); font-size: 0.75em; vertical-align: super; margin-inline-end: 4px; }
         
-        /* Verse State Colors & Mixing */
+        /* Verse State Colors */
         .verse.selected { background-color: var(--highlight); }
         .verse.bookmarked { background-color: var(--bookmarked-bg); }
-        
-        /* Active Playing State (Blue border + light grey background tint) */
-        .verse.playing { 
-            box-shadow: -4px 0 0 0 var(--primary-color); 
-            background-color: var(--playing-bg); 
-        }
-        /* Paused State (All grey: grey border + light grey background tint, dropping primary blue) */
-        .verse.playing.paused {
-            box-shadow: -4px 0 0 0 var(--text-muted);
-            background-color: var(--playing-bg);
-        }
-
-        /* Swap play indicator shadow side if RTL */
+        .verse.playing { box-shadow: -4px 0 0 0 var(--primary-color); background-color: var(--playing-bg); }
+        .verse.playing.paused { box-shadow: -4px 0 0 0 var(--text-muted); background-color: var(--playing-bg); }
         [dir="rtl"] .verse.playing { box-shadow: 4px 0 0 0 var(--primary-color); }
         [dir="rtl"] .verse.playing.paused { box-shadow: 4px 0 0 0 var(--text-muted); }
-        
-        /* Combined states using color-mix for harmony */
-        .verse.selected.bookmarked {
-            background-color: color-mix(in srgb, var(--highlight) 50%, var(--bookmarked-bg) 50%);
-        }
-        .verse.playing.selected {
-            background-color: color-mix(in srgb, var(--playing-bg) 50%, var(--highlight) 50%);
-        }
-        .verse.playing.bookmarked {
-            background-color: color-mix(in srgb, var(--playing-bg) 50%, var(--bookmarked-bg) 50%);
-        }
-        .verse.playing.selected.bookmarked {
-            background-color: color-mix(in srgb, var(--playing-bg) 33%, color-mix(in srgb, var(--highlight) 50%, var(--bookmarked-bg) 50%) 67%);
-        }
+        .verse.selected.bookmarked { background-color: color-mix(in srgb, var(--highlight) 50%, var(--bookmarked-bg) 50%); }
+        .verse.playing.selected { background-color: color-mix(in srgb, var(--playing-bg) 50%, var(--highlight) 50%); }
+        .verse.playing.bookmarked { background-color: color-mix(in srgb, var(--playing-bg) 50%, var(--bookmarked-bg) 50%); }
+        .verse.playing.selected.bookmarked { background-color: color-mix(in srgb, var(--playing-bg) 33%, color-mix(in srgb, var(--highlight) 50%, var(--bookmarked-bg) 50%) 67%); }
         
         /* Action FABs */
-        .fab { position: fixed; border: none; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 50; transition: transform 0.2s, bottom 0.3s; }
+        .fab { position: fixed; border: none; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 50; transition: transform 0.2s, bottom 0.3s; }
         .fab:active { transform: scale(0.9); }
         
         /* Panic FAB */
-        .fab-panic { background: #ff3b30; color: white; width: 56px; height: 56px; bottom: 20px; right: 20px; }
+        .fab-panic { background: #ff3b30; color: white; width: 56px; height: 56px; border-radius: 50%; bottom: 20px; right: 20px; }
         .panic-symbol { font-size: 28px; line-height: 1; font-weight: 400; font-family: '-apple-system', sans-serif; }
         
-        /* Resume FAB (Bottom Left - Home/Chapter view) */
-        #resumeFab { background: var(--surface-color); color: var(--primary-color); width: 56px; height: 56px; bottom: 20px; left: 20px; display: none; }
+        /* Pill-shaped Resume FAB (Bottom Left - Home/Chapter view) */
+        #resumeFab { 
+            background: var(--surface-color); color: var(--primary-color); height: 56px; width: auto; 
+            padding: 0 20px; border-radius: 28px; bottom: 20px; left: 20px; display: none; align-items: center; 
+            gap: 10px; font-weight: 600; font-size: 0.95rem; max-width: calc(100vw - 100px); box-sizing: border-box; 
+        }
+        #resumeFab .resume-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Selection FABs (Bottom Left - Reader view) */
         .selection-fabs { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: row; gap: 15px; transform: scale(0); transition: transform 0.2s, bottom 0.3s; z-index: 40; pointer-events: none; }
         .selection-fabs.visible { transform: scale(1); pointer-events: auto; }
-        .fab-action { background: var(--surface-color); color: var(--primary-color); width: 48px; height: 48px; position: relative; }
+        .fab-action { background: var(--surface-color); color: var(--primary-color); width: 48px; height: 48px; border-radius: 50%; position: relative; }
 
         /* Bottom Bar */
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--header-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; transform: translateY(100%); transition: transform 0.3s; z-index: 40; }
@@ -333,11 +262,18 @@
         .bb-btn.play-btn { color: var(--primary-color); }
         .bb-btn.play-btn .material-symbols-rounded { font-size: 48px; }
 
-        /* CSS-ONLY: Shift UP Left FABs and Right Panic FAB when Bottom Bar is visible */
+        /* Shift UP Left FABs and Right Panic FAB when Bottom Bar is visible */
         #app-bible:has(.bottom-bar.visible) .fab-panic,
-        #app-bible:has(.bottom-bar.visible) .selection-fabs {
-            bottom: 90px;
+        #app-bible:has(.bottom-bar.visible) .selection-fabs { bottom: 90px; }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px);
+            background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 24px;
+            z-index: 9999; transition: transform 0.3s ease, opacity 0.3s ease; pointer-events: none; opacity: 0;
+            font-weight: 500; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap;
         }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
     </style>
 </head>
@@ -376,7 +312,10 @@
         </div>
     </div>
 
-    <!-- CALCULATOR HELP MODAL (Native Dialog) -->
+    <!-- TOAST NOTIFICATION -->
+    <div id="toastMsg" class="toast">Go back again to exit</div>
+
+    <!-- CALCULATOR HELP MODAL -->
     <dialog id="helpModal">
         <h3>Help</h3>
         <p style="text-align:center; margin-bottom: 20px; color: var(--text-muted);">Let the reader understand. How many times should I forgive my brother?</p>
@@ -391,23 +330,10 @@
         <button class="modal-btn" onclick="closeHelp()">Close</button>
     </dialog>
 
-    <!-- MANUAL INSTALL INSTRUCTIONS MODAL (Fallback) -->
-    <dialog id="iosInstallModal">
-        <h3>Install App</h3>
-        <p style="text-align:center; line-height: 1.6; color: var(--text-muted); margin-bottom: 20px;">
-            To install this app on your iPhone or iPad:<br><br>
-            1. Tap the <span class="material-symbols-rounded" style="vertical-align: middle; font-size: 1.2em; color: var(--primary-color);">ios_share</span> <b>Share</b> button at the bottom of Safari.<br><br>
-            2. Scroll down and select <b>Add to Home Screen</b>.
-        </p>
-        <button class="modal-btn" onclick="document.getElementById('iosInstallModal').close()">Got it</button>
-    </dialog>
-
-    <!-- SETTINGS MODAL (Native Dialog) -->
+    <!-- SETTINGS MODAL -->
     <dialog id="settingsModal">
         <h3>Settings</h3>
-        
         <div class="ios-list">
-            <!-- Theme Select Row -->
             <div class="ios-row ios-select-row">
                 <div class="ios-row-label">Theme</div>
                 <div class="ios-row-control">
@@ -422,7 +348,6 @@
                 </select>
             </div>
             
-            <!-- Font Family Select Row -->
             <div class="ios-row ios-select-row">
                 <div class="ios-row-label">Font Family</div>
                 <div class="ios-row-control">
@@ -438,7 +363,6 @@
                 </select>
             </div>
             
-            <!-- Font Size Stepper Row -->
             <div class="ios-row">
                 <div class="ios-row-label">Font Size</div>
                 <div class="ios-row-control">
@@ -450,7 +374,6 @@
                 </div>
             </div>
             
-            <!-- Data Source Select Row -->
             <div class="ios-row ios-select-row">
                 <div class="ios-row-label">Data Source</div>
                 <div class="ios-row-control">
@@ -467,7 +390,6 @@
         </div>
 
         <div class="ios-list" id="speechSettingsGroup">
-            <!-- Speech Rate Stepper Row -->
             <div class="ios-row" id="speechRateRow">
                 <div class="ios-row-label">Speech Rate</div>
                 <div class="ios-row-control">
@@ -479,7 +401,6 @@
                 </div>
             </div>
 
-            <!-- Voice Select Row -->
             <div class="ios-row ios-select-row" id="speechVoiceRow">
                 <div class="ios-row-label">Voice</div>
                 <div class="ios-row-control">
@@ -493,14 +414,13 @@
         </div>
 
         <div class="ios-list">
-            <!-- Install App Row (Always visible) -->
+            <!-- Install App Row (Dynamically Hidden if PWA or iOS) -->
             <div class="ios-row" id="installRowContainer" onclick="handleInstallClick()" style="cursor: pointer;">
                 <div class="ios-row-label">Install to Home Screen</div>
                 <div class="ios-row-control">
                     <span class="material-symbols-rounded" style="color: var(--primary-color);">install_desktop</span>
                 </div>
             </div>
-            <!-- Panic Toggle Row wrapped in label for native full-row clickability -->
             <label class="ios-row" style="cursor: pointer;">
                 <div class="ios-row-label">Panic Calculator Mode</div>
                 <div class="ios-row-control">
@@ -508,10 +428,8 @@
                 </div>
             </label>
         </div>
-
         <button class="modal-btn" onclick="closeSettings()">Done</button>
     </dialog>
-
 
     <!-- BIBLE APP (VULT) -->
     <div id="app-bible">
@@ -520,18 +438,20 @@
                 <button class="header-btn" id="navBack" style="display: none;">
                     <span class="material-symbols-rounded">arrow_back_ios</span>
                 </button>
-                <select class="translation-select" id="transSelect"></select>
+                <div class="translation-select-wrapper" id="transSelectWrapper">
+                    <span id="transSelectDisplay">KJV</span>
+                    <span class="material-symbols-rounded" style="font-size: 20px; margin-left: 2px;">expand_more</span>
+                    <select class="translation-select" id="transSelect"></select>
+                </div>
             </div>
             
-            <h1 id="headerTitle">Vult</h1>
+            <h1 id="headerTitle">Vul±</h1>
             
             <div class="header-right">
                 <button class="header-btn" onclick="openSettings()">
                     <span class="material-symbols-rounded">settings</span>
                 </button>
             </div>
-            
-            <!-- Dynamic CSS Loading Bar -->
             <div class="loading-bar"></div>
         </header>
 
@@ -557,7 +477,6 @@
                 <summary>Chapters</summary>
                 <div class="chapter-grid" id="chapterGrid"></div>
             </details>
-            <!-- Bookmarks Specific to the Selected Book -->
             <details open id="bookBookmarksDetails">
                 <summary>Bookmarks</summary>
                 <div class="bookmark-list" id="bookBookmarksList"></div>
@@ -569,9 +488,10 @@
             <div id="readerContent"></div>
         </div>
 
-        <!-- RESUME FAB (Bottom Left - Home & Chapters view) -->
+        <!-- PILL RESUME FAB (Bottom Left - Home & Chapters view) -->
         <button class="fab" id="resumeFab" onclick="resumeLastLocation()">
-            <span class="material-symbols-rounded">source_notes</span>
+            <span class="material-symbols-rounded">auto_stories</span>
+            <span class="resume-text" id="resumeFabText"></span>
         </button>
 
         <!-- SELECTION FABS (Bottom Left - Reader view) -->
@@ -587,7 +507,7 @@
             </button>
         </div>
 
-        <!-- BOTTOM BAR (Reader Navigation & Play) -->
+        <!-- BOTTOM BAR -->
         <div class="bottom-bar" id="bottomBar">
             <button class="bb-btn" onclick="prevChapter()">
                 <span class="material-symbols-rounded">skip_previous</span>
@@ -600,7 +520,7 @@
             </button>
         </div>
 
-        <!-- PANIC FAB (Bottom Right) -->
+        <!-- PANIC FAB -->
         <button class="fab fab-panic" id="panicBtn" onclick="triggerPanic()">
             <span class="panic-symbol">±</span>
         </button>
@@ -623,10 +543,18 @@ const BIBLE_BOOKS = [
     "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
 ];
 const OPENBIBLE_TRANS = [
-    { value: 'akjv', label: 'AKJV' }, { value: 'asv', label: 'ASV' }, { value: 'cpdv', label: 'CPDV' },
-    { value: 'dbt', label: 'DBT' }, { value: 'drb', label: 'DRB' }, { value: 'erv', label: 'ERV' },
-    { value: 'jps', label: 'JPS' }, { value: 'kjv', label: 'KJV' }, { value: 'slt', label: 'SLT' },
-    { value: 'wbt', label: 'WBT' }, { value: 'web', label: 'WEB' }, { value: 'ylt', label: 'YLT' }
+    { value: 'akjv', label: 'AKJV', full: 'American King James Version' },
+    { value: 'asv', label: 'ASV', full: 'American Standard Version' },
+    { value: 'cpdv', label: 'CPDV', full: 'Catholic Public Domain Version' },
+    { value: 'dbt', label: 'DBT', full: 'Darby Bible Translation' },
+    { value: 'drb', label: 'DRB', full: 'Douay-Rheims Bible' },
+    { value: 'erv', label: 'ERV', full: 'English Revised Version' },
+    { value: 'jps', label: 'JPS', full: 'Jewish Publication Society' },
+    { value: 'kjv', label: 'KJV', full: 'King James Version' },
+    { value: 'slt', label: 'SLT', full: 'Smith\'s Literal Translation' },
+    { value: 'wbt', label: 'WBT', full: 'Webster\'s Bible Translation' },
+    { value: 'web', label: 'WEB', full: 'World English Bible' },
+    { value: 'ylt', label: 'YLT', full: 'Young\'s Literal Translation' }
 ];
 
 let inputBuffer = [];
@@ -652,55 +580,52 @@ let deferredPrompt = null;
 let userInteracted = false;
 let isPopState = false;
 let pendingHistory = [];
+let backPressCount = 0;
+let backPressTimer = null;
 
 /* =========================================
    PWA DYNAMIC MANIFEST & INSTALL LOGIC
 ========================================= */
+function isRunningStandalone() {
+    return (window.matchMedia('(display-mode: standalone)').matches) || 
+           (window.navigator.standalone) || 
+           document.referrer.includes('android-app://');
+}
+
+function isIOSDevice() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 function updateDynamicManifest() {
     const appName = state.panicEnabled ? "Calculator" : "Vult";
-    
-    // Draw robust PNG icon using Canvas instead of SVG to guarantee Chrome compatibility
     const canvas = document.createElement('canvas');
-    canvas.width = 512;
-    canvas.height = 512;
+    canvas.width = 512; canvas.height = 512;
     const ctx = canvas.getContext('2d');
     
-    // Draw Background
     ctx.fillStyle = '#000000';
     ctx.beginPath();
     const r = 120;
-    ctx.moveTo(r, 0);
-    ctx.lineTo(512-r, 0); ctx.arcTo(512, 0, 512, r, r);
+    ctx.moveTo(r, 0); ctx.lineTo(512-r, 0); ctx.arcTo(512, 0, 512, r, r);
     ctx.lineTo(512, 512-r); ctx.arcTo(512, 512, 512-r, 512, r);
     ctx.lineTo(r, 512); ctx.arcTo(0, 512, 0, 512-r, r);
     ctx.lineTo(0, r); ctx.arcTo(0, 0, r, 0, r);
     ctx.fill();
     
-    // Draw Text
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 280px -apple-system, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('±', 256, 276); // offset for center alignment
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('±', 256, 276); 
     
     const iconDataUri = canvas.toDataURL('image/png');
 
     const manifestObj = {
-        name: appName,
-        short_name: appName,
-        start_url: window.location.href,
-        display: "standalone",
-        background_color: "#000000",
-        theme_color: "#000000",
-        icons: [{ src: iconDataUri, sizes: "512x512", type: "image/png" }]
+        name: appName, short_name: appName, start_url: window.location.href, display: "standalone",
+        background_color: "#000000", theme_color: "#000000", icons: [{ src: iconDataUri, sizes: "512x512", type: "image/png" }]
     };
 
-    const stringManifest = JSON.stringify(manifestObj);
-    const blob = new Blob([stringManifest], { type: 'application/json' });
-    const manifestURL = URL.createObjectURL(blob);
-    
+    const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
     const manifestLink = document.getElementById('dynamicManifest');
-    if (manifestLink) manifestLink.setAttribute('href', manifestURL);
+    if (manifestLink) manifestLink.setAttribute('href', URL.createObjectURL(blob));
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -708,9 +633,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
     deferredPrompt = e;
 });
 
-window.addEventListener('appinstalled', () => {
-    deferredPrompt = null;
-});
+window.addEventListener('appinstalled', () => { deferredPrompt = null; });
 
 async function handleInstallClick() {
     if (deferredPrompt) {
@@ -719,11 +642,18 @@ async function handleInstallClick() {
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
             deferredPrompt = null;
+            document.getElementById('installRowContainer').style.display = 'none';
         }
     } else {
-        // Show manual instructions modal for iOS or browsers that don't support the install event
-        document.getElementById('iosInstallModal').showModal();
+        alert("App can be installed from your browser menu.");
     }
+}
+
+function showToast(msg) {
+    let toast = document.getElementById('toastMsg');
+    toast.innerText = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2000);
 }
 
 /* =========================================
@@ -733,12 +663,9 @@ function getCurrentBook() {
     return currentBookIndex >= 0 ? (currentIsNT ? activeData.NT : activeData.OT)[currentBookIndex] : null;
 }
 
-// Global user interaction listener to bypass browser history restrictions
 const registerInteraction = () => {
     if (userInteracted) return;
     userInteracted = true;
-    
-    // Flush buffered history states upon user's first tap
     pendingHistory.forEach(v => history.pushState({ view: v }, ''));
     pendingHistory = [];
 };
@@ -747,37 +674,39 @@ document.addEventListener('keydown', registerInteraction, { capture: true, once:
 
 function pushNavState(viewName) {
     activeView = viewName;
+    if (isPopState) return; 
     
-    if (isPopState) return; // Prevent pushing new states when the user is going backwards via hardware Back
-    
-    if (!userInteracted) {
-        pendingHistory.push(viewName);
-    } else {
-        history.pushState({ view: viewName }, '');
-    }
+    if (!userInteracted) { pendingHistory.push(viewName); } 
+    else { history.pushState({ view: viewName }, ''); }
 }
 
 window.onpopstate = function (event) {
     isPopState = true;
     
-    const dialogs = ['settingsModal', 'helpModal', 'iosInstallModal'];
+    const dialogs = ['settingsModal', 'helpModal'];
     for(let id of dialogs) {
         let el = document.getElementById(id);
-        if (el && el.open) { 
-            el.close(); 
-            isPopState = false;
-            return; 
-        }
+        if (el && el.open) { el.close(); isPopState = false; return; }
     }
 
     const navBackBtn = document.getElementById('navBack');
     if (navBackBtn && navBackBtn.style.display !== 'none' && typeof navBackBtn.onclick === 'function') {
         navBackBtn.onclick();
-    } else if (state.secretUnlocked && state.panicEnabled) {
-        triggerPanic();
+    } else if (state.secretUnlocked) {
+        // Intercept back action on root home view
+        if (backPressCount === 0) {
+            backPressCount++;
+            showToast("Go back again to exit");
+            history.pushState({ view: 'home' }, '');
+            backPressTimer = setTimeout(() => { backPressCount = 0; }, 2000);
+        } else {
+            clearTimeout(backPressTimer);
+            backPressCount = 0;
+            if (state.panicEnabled) { triggerPanic(); } 
+            else { history.go(-2); }
+        }
     }
     
-    // Reset flag safely after sync UI functions process
     setTimeout(() => { isPopState = false; }, 10);
 };
 
@@ -788,63 +717,44 @@ function init() {
     loadState();
     if (!state.source) { state.source = 'getbible'; saveState(); }
     
-    applySettings();
-    checkSpeechSupport();
-    setupPlayButton();
-    setupDialogDismiss();
-    
-    // Delay manifest generation slightly so it doesn't block critical render
+    applySettings(); checkSpeechSupport(); setupPlayButton(); setupDialogDismiss();
     setTimeout(updateDynamicManifest, 100); 
     
-    // Initialize base anchor state
     history.replaceState({ view: 'base' }, '');
     
     if (!state.panicEnabled) {
-        state.secretUnlocked = true;
-        openBibleApp(); 
+        state.secretUnlocked = true; openBibleApp(); 
     } else {
         showCalculator();
     }
 }
 
 function setupDialogDismiss() {
-    const dialogs = document.querySelectorAll('dialog');
-    dialogs.forEach(dialog => {
-        dialog.addEventListener('click', function(e) {
-            if (e.target === this) this.close();
-        });
+    document.querySelectorAll('dialog').forEach(dialog => {
+        dialog.addEventListener('click', function(e) { if (e.target === this) this.close(); });
     });
 }
 
 function checkSpeechSupport() {
     if (!synth) {
-        const playBtn = document.getElementById('playBtn');
-        if (playBtn) playBtn.style.display = 'none';
-        
-        const speechGroup = document.getElementById('speechSettingsGroup');
-        if (speechGroup) speechGroup.style.display = 'none';
-    } else {
-        populateVoices();
-    }
+        document.getElementById('playBtn').style.display = 'none';
+        document.getElementById('speechSettingsGroup').style.display = 'none';
+    } else { populateVoices(); }
 }
 
 function setupPlayButton() {
     const playBtnEl = document.getElementById('playBtn');
-    let playPressTimer;
-    let isLongPress = false;
+    let playPressTimer; let isLongPress = false;
 
     playBtnEl.addEventListener('pointerdown', (e) => {
         isLongPress = false;
         playPressTimer = setTimeout(() => {
-            isLongPress = true;
-            cancelSpeech();
-            playingIndex = -1; 
+            isLongPress = true; cancelSpeech(); playingIndex = -1; 
             if ('vibrate' in navigator) navigator.vibrate(50); 
         }, 600); 
     });
     playBtnEl.addEventListener('pointerup', (e) => {
-        clearTimeout(playPressTimer);
-        if (!isLongPress) togglePlay();
+        clearTimeout(playPressTimer); if (!isLongPress) togglePlay();
     });
     playBtnEl.addEventListener('pointerleave', () => clearTimeout(playPressTimer));
     playBtnEl.addEventListener('pointercancel', () => clearTimeout(playPressTimer));
@@ -853,8 +763,7 @@ function setupPlayButton() {
 
 async function requestWakeLock() {
     if ('wakeLock' in navigator && document.visibilityState === 'visible') {
-        try { wakeLock = await navigator.wakeLock.request('screen'); } 
-        catch (err) { console.error(`Wake Lock error: ${err.message}`); }
+        try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
     }
 }
 
@@ -863,22 +772,16 @@ function releaseWakeLock() {
 }
 
 document.addEventListener('visibilitychange', async () => {
-    if (wakeLock !== null && document.visibilityState === 'visible' && isPlaying) {
-        await requestWakeLock();
-    }
+    if (wakeLock !== null && document.visibilityState === 'visible' && isPlaying) { await requestWakeLock(); }
 });
 
 function loadState() {
     const saved = localStorage.getItem('vult_state');
     if (saved) state = { ...state, ...JSON.parse(saved) };
-    if (localStorage.getItem('vult_hideHelp')) {
-        document.getElementById('calcHelpBtn').style.display = 'none';
-    }
+    if (localStorage.getItem('vult_hideHelp')) document.getElementById('calcHelpBtn').style.display = 'none';
 }
 
-function saveState() {
-    localStorage.setItem('vult_state', JSON.stringify(state));
-}
+function saveState() { localStorage.setItem('vult_state', JSON.stringify(state)); }
 
 /* =========================================
    CALCULATOR LOGIC
@@ -886,49 +789,36 @@ function saveState() {
 function showCalculator() {
     document.getElementById('app-calculator-wrapper').style.display = 'flex';
     document.getElementById('app-bible').style.display = 'none';
-    displayValue = '0';
-    updateDisplay();
+    displayValue = '0'; updateDisplay();
 }
 
 function calcInput(val) {
-    // Calculator typing functions as a user interaction, safely setting flag early
     if (!userInteracted) registerInteraction();
     
-    if (val === 'C') {
-        displayValue = '0';
-        inputBuffer = [];
-    } else if (val === '=') {
-        try {
-            let expr = displayValue.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
-            displayValue = String(eval(expr));
-        } catch { displayValue = 'Error'; }
+    if (val === 'C') { displayValue = '0'; inputBuffer = []; } 
+    else if (val === '=') {
+        try { displayValue = String(eval(displayValue.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-'))); } 
+        catch { displayValue = 'Error'; }
     } else {
-        if (displayValue === '0' && !isNaN(val)) displayValue = val;
-        else displayValue += val;
+        if (displayValue === '0' && !isNaN(val)) displayValue = val; else displayValue += val;
     }
     updateDisplay();
 
     inputBuffer.push(val);
     if (inputBuffer.length > 4) inputBuffer.shift();
-    if (inputBuffer.join('') === SECRET_CODE.join('')) {
-        setTimeout(openBibleApp, 200);
-    }
+    if (inputBuffer.join('') === SECRET_CODE.join('')) setTimeout(openBibleApp, 200);
 }
 
-function updateDisplay() {
-    document.getElementById('calcDisplay').innerText = displayValue;
-}
+function updateDisplay() { document.getElementById('calcDisplay').innerText = displayValue; }
 
 document.getElementById('calcHelpBtn').addEventListener('click', () => {
-    document.getElementById('helpModal').showModal();
-    pushNavState('modal-help');
+    document.getElementById('helpModal').showModal(); pushNavState('modal-help');
 });
 
 function closeHelp() {
     document.getElementById('helpModal').close();
     if(!document.getElementById('showHelpCheck').checked) {
-        localStorage.setItem('vult_hideHelp', 'true');
-        document.getElementById('calcHelpBtn').style.display = 'none';
+        localStorage.setItem('vult_hideHelp', 'true'); document.getElementById('calcHelpBtn').style.display = 'none';
     }
 }
 
@@ -943,7 +833,6 @@ async function populateTranslations() {
         try {
             const res = await fetch('https://api.getbible.net/v2/translations.json');
             const data = await res.json();
-            
             translationMeta = data; 
             let transArray = Object.values(data).sort((a,b) => a.abbreviation.localeCompare(b.abbreviation));
             
@@ -951,48 +840,50 @@ async function populateTranslations() {
                 let opt = document.createElement('option');
                 opt.value = t.abbreviation;
                 opt.innerText = `${t.abbreviation.toUpperCase()} - ${t.translation}`;
+                opt.dataset.acronym = t.abbreviation.toUpperCase();
                 select.appendChild(opt);
             });
         } catch (e) {
-            console.error("Failed to load GetBible translations:", e);
             let opt = document.createElement('option');
-            opt.value = 'kjv';
-            opt.innerText = 'KJV - King James Version';
+            opt.value = 'kjv'; opt.innerText = 'KJV - King James Version'; opt.dataset.acronym = 'KJV';
             select.appendChild(opt);
         }
     } else {
         OPENBIBLE_TRANS.forEach(t => {
             let opt = document.createElement('option');
             opt.value = t.value;
-            opt.innerText = t.label;
+            opt.innerText = `${t.label} - ${t.full}`;
+            opt.dataset.acronym = t.label;
             select.appendChild(opt);
         });
     }
     
     let exists = Array.from(select.options).some(o => o.value === state.translation);
-    if (exists) {
-        select.value = state.translation;
-    } else if (select.options.length > 0) {
-        state.translation = select.options[0].value;
-        select.value = state.translation;
-        saveState();
+    if (exists) { select.value = state.translation; } 
+    else if (select.options.length > 0) { state.translation = select.options[0].value; select.value = state.translation; saveState(); }
+    updateTransDisplay();
+}
+
+function updateTransDisplay() {
+    const select = document.getElementById('transSelect');
+    if (select.selectedIndex >= 0) {
+        let acr = select.options[select.selectedIndex].dataset.acronym || select.value.toUpperCase();
+        document.getElementById('transSelectDisplay').innerText = acr;
     }
 }
 
 async function loadBibleData() {
     if (activeData.OT.length > 0 || activeData.NT.length > 0) return true;
-    
     document.body.classList.add('is-loading');
+    
     try {
         let allBooks = [];
-
         if (state.source === 'getbible') {
             const res = await fetch(`https://api.getbible.net/v2/${state.translation}.json`);
-            if (!res.ok) throw new Error("GetBible API returned " + res.status);
+            if (!res.ok) throw new Error("API returned " + res.status);
             const data = await res.json();
             
             let bookList = Array.isArray(data) ? data : (data.books || Object.values(data));
-            
             bookList.forEach((bookItem, bIdx) => {
                 let bookName = bookItem.name || bookItem.book_name || BIBLE_BOOKS[bIdx] || `Book ${bIdx + 1}`;
                 let chapters = [];
@@ -1003,7 +894,6 @@ async function loadBibleData() {
                     chapArray.forEach((chapItem, cIdx) => {
                         let versesArray = [];
                         let versesData = Array.isArray(chapItem) ? chapItem : (chapItem.verses || chapItem);
-                        
                         const vArray = Array.isArray(versesData) ? versesData : Object.values(versesData);
                         vArray.forEach((v, vIdx) => {
                             let vNum = v.verse || v.n || (vIdx + 1);
@@ -1011,43 +901,24 @@ async function loadBibleData() {
                             text = text.replace(/¶/g, '').trim(); 
                             if (vNum && text) versesArray[parseInt(vNum)] = text;
                         });
-                        
                         let chapNum = chapItem.chapter || chapItem.c || (cIdx + 1);
                         chapters[parseInt(chapNum)] = versesArray;
                     });
                 }
                 allBooks.push({ name: bookName, chapters: chapters });
             });
-            
         } else {
             let text = "";
-            try {
-                const onlineRes = await fetch(`https://openbible.com/textfiles/${state.translation}.txt`);
-                if (!onlineRes.ok) throw new Error("Online file request returned " + onlineRes.status);
-                text = await onlineRes.text();
-            } catch (onlineErr) {
-                console.warn("Could not fetch remote file, falling back to local storage.");
-                const localRes = await fetch(`${state.translation}.txt`);
-                if (!localRes.ok) throw new Error("Local file request returned " + localRes.status);
-                text = await localRes.text();
-            }
+            try { text = await (await fetch(`https://openbible.com/textfiles/${state.translation}.txt`)).text(); } 
+            catch { text = await (await fetch(`${state.translation}.txt`)).text(); }
             
-            const lines = text.split(/\r?\n/);
-            for (let line of lines) {
+            for (let line of text.split(/\r?\n/)) {
                 if (!line.trim()) continue;
                 let match = line.match(/^([A-Za-z\s\d]+?)[\s\t]+(\d+)[:\t](\d+)[\s\t]+(.*)$/);
                 if (match) {
-                    let bName = match[1].trim();
-                    let cNum = parseInt(match[2]);
-                    let vNum = parseInt(match[3]);
-                    let vText = match[4].replace(/¶/g, '').trim(); 
-
+                    let bName = match[1].trim(), cNum = parseInt(match[2]), vNum = parseInt(match[3]), vText = match[4].replace(/¶/g, '').trim(); 
                     let book = allBooks.find(b => b.name === bName);
-                    if (!book) {
-                        book = { name: bName, chapters: [] };
-                        allBooks.push(book);
-                    }
-                    
+                    if (!book) { book = { name: bName, chapters: [] }; allBooks.push(book); }
                     if (!book.chapters[cNum]) book.chapters[cNum] = [];
                     book.chapters[cNum][vNum] = vText;
                 }
@@ -1056,34 +927,17 @@ async function loadBibleData() {
 
         let splitIdx = -1;
         for (let i = 0; i < allBooks.length; i++) {
-            let n = allBooks[i].name.toLowerCase();
-            if (/(matt|mateo|mateus|matthieu|matthäus|matteo|matí)/i.test(n)) {
-                splitIdx = i;
-                break;
-            }
+            if (/(matt|mateo|mateus|matthieu|matthäus|matteo|matí)/i.test(allBooks[i].name.toLowerCase())) { splitIdx = i; break; }
         }
-        
-        if (splitIdx === -1) {
-            if (allBooks.length === 66) splitIdx = 39;
-            else if (allBooks.length === 27) splitIdx = 0;
-        }
+        if (splitIdx === -1) { splitIdx = (allBooks.length === 66) ? 39 : ((allBooks.length === 27) ? 0 : -1); }
 
-        if (splitIdx === 0) {
-            activeData.OT = []; activeData.NT = allBooks;
-        } else if (splitIdx > 0) {
-            activeData.OT = allBooks.slice(0, splitIdx); activeData.NT = allBooks.slice(splitIdx);
-        } else {
-            activeData.OT = allBooks; activeData.NT = [];
-        }
+        if (splitIdx === 0) { activeData.OT = []; activeData.NT = allBooks; } 
+        else if (splitIdx > 0) { activeData.OT = allBooks.slice(0, splitIdx); activeData.NT = allBooks.slice(splitIdx); } 
+        else { activeData.OT = allBooks; activeData.NT = []; }
 
-        document.body.classList.remove('is-loading');
-        return true;
-
+        document.body.classList.remove('is-loading'); return true;
     } catch (e) {
-        console.error("Data Load Error:", e);
-        document.body.classList.remove('is-loading');
-        alert(`Error loading ${state.translation.toUpperCase()}.\nPlease check your internet connection.`);
-        return false;
+        document.body.classList.remove('is-loading'); alert(`Error loading ${state.translation.toUpperCase()}.`); return false;
     }
 }
 
@@ -1092,17 +946,13 @@ async function switchTranslation(newTrans) {
     const prevTrans = state.translation;
     state.translation = newTrans;
     document.getElementById('transSelect').value = newTrans;
+    updateTransDisplay();
     activeData = { OT: [], NT: [] };
     
-    if (await loadBibleData()) {
-        saveState();
-        return true;
-    } else {
-        state.translation = prevTrans;
-        document.getElementById('transSelect').value = prevTrans;
-        activeData = { OT: [], NT: [] };
-        await loadBibleData();
-        return false;
+    if (await loadBibleData()) { saveState(); return true; } 
+    else {
+        state.translation = prevTrans; document.getElementById('transSelect').value = prevTrans; updateTransDisplay();
+        activeData = { OT: [], NT: [] }; await loadBibleData(); return false;
     }
 }
 
@@ -1110,37 +960,24 @@ async function switchTranslation(newTrans) {
    BIBLE UI NAVIGATION
 ========================================= */
 async function openBibleApp() {
-    state.secretUnlocked = true;
-    inputBuffer = [];
+    state.secretUnlocked = true; inputBuffer = [];
     document.getElementById('app-calculator-wrapper').style.display = 'none';
     document.getElementById('app-bible').style.display = 'flex';
     document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none';
     
-    // Explicitly add loading state immediately at start of sequence
     document.body.classList.add('is-loading');
-    
     await populateTranslations();
-    document.getElementById('transSelect').value = state.translation;
+    document.getElementById('transSelect').value = state.translation; updateTransDisplay();
 
     const success = await loadBibleData();
-    
-    // Ensure loading state is cleaned up after sequence ends
     document.body.classList.remove('is-loading');
     
     if (success && state.lastBook && state.lastChap) {
         let isNT = activeData.NT.some(b => b.name === state.lastBook.name);
         let exists = isNT || activeData.OT.some(b => b.name === state.lastBook.name);
-        if(exists) {
-            pushNavState('home');
-            pushNavState('chapters');
-            openChapter(state.lastBook.name, isNT, state.lastChap, false);
-        }
-        else {
-            renderHome();
-        }
-    } else {
-        renderHome();
-    }
+        if(exists) { pushNavState('home'); pushNavState('chapters'); openChapter(state.lastBook.name, isNT, state.lastChap, false); }
+        else { renderHome(); }
+    } else { renderHome(); }
 }
 
 function createBookmarkElement(bm) {
@@ -1149,8 +986,7 @@ function createBookmarkElement(bm) {
     div.innerHTML = `<div class="bookmark-ref">${bm.ref} (${bm.trans.toUpperCase()})</div><div class="bookmark-text">${bm.text}</div>`;
     div.onclick = async () => {
         if (await switchTranslation(bm.trans)) {
-            let isNT = activeData.NT.some(b => b.name === bm.book);
-            openChapter(bm.book, isNT, bm.chapter, true, bm.verse);
+            let isNT = activeData.NT.some(b => b.name === bm.book); openChapter(bm.book, isNT, bm.chapter, true, bm.verse);
         }
     };
     return div;
@@ -1168,186 +1004,130 @@ function updateResumeFabVisibility() {
     const resumeFab = document.getElementById('resumeFab');
     if (state.lastBook && state.lastChap) {
         resumeFab.style.display = 'flex';
+        document.getElementById('resumeFabText').innerText = `${state.lastBook.name} ${state.lastChap} (${state.translation.toUpperCase()})`;
     } else {
         resumeFab.style.display = 'none';
     }
 }
 
 function renderHome() {
-    hideAllViews();
-    document.getElementById('view-home').classList.add('active');
+    hideAllViews(); document.getElementById('view-home').classList.add('active');
     document.getElementById('headerTitle').innerText = 'Vult';
     
     document.getElementById('navBack').style.display = 'none';
-    document.getElementById('transSelect').style.display = 'inline-block';
+    document.getElementById('transSelectWrapper').style.display = 'flex';
     
     document.getElementById('bottomBar').classList.remove('visible');
     
-    updateResumeFabVisibility();
-    updateSelectionFabs();
+    updateResumeFabVisibility(); updateSelectionFabs();
     
-    const ntGrid = document.getElementById('ntGrid');
-    const otGrid = document.getElementById('otGrid');
-    const ntDetails = document.getElementById('ntDetails');
-    const otDetails = document.getElementById('otDetails');
-    const ntSummary = document.getElementById('ntSummary');
-    const otSummary = document.getElementById('otSummary');
+    const ntGrid = document.getElementById('ntGrid'), otGrid = document.getElementById('otGrid');
+    const ntDetails = document.getElementById('ntDetails'), otDetails = document.getElementById('otDetails');
+    const ntSummary = document.getElementById('ntSummary'), otSummary = document.getElementById('otSummary');
 
     ntGrid.innerHTML = ''; otGrid.innerHTML = '';
     
-    if (activeData.NT.length === 0) {
-        ntDetails.style.display = 'none'; otDetails.style.display = 'block'; otSummary.innerText = 'Books';
-    } else if (activeData.OT.length === 0) {
-        otDetails.style.display = 'none'; ntDetails.style.display = 'block'; ntSummary.innerText = 'Books';
-    } else {
-        ntDetails.style.display = 'block'; otDetails.style.display = 'block';
-        ntSummary.innerText = 'New Testament'; otSummary.innerText = 'Old Testament';
-    }
+    if (activeData.NT.length === 0) { ntDetails.style.display = 'none'; otDetails.style.display = 'block'; otSummary.innerText = 'Books'; } 
+    else if (activeData.OT.length === 0) { otDetails.style.display = 'none'; ntDetails.style.display = 'block'; ntSummary.innerText = 'Books'; } 
+    else { ntDetails.style.display = 'block'; otDetails.style.display = 'block'; ntSummary.innerText = 'New Testament'; otSummary.innerText = 'Old Testament'; }
 
     const renderGrid = (data, grid, isNT) => {
         data.forEach((b, i) => {
             if (!b.chapters || !b.chapters.some(c => c && c.length > 0)) return; 
-            let div = document.createElement('div');
-            div.className = 'grid-item'; div.innerText = b.name;
-            div.setAttribute('dir', 'auto');
-            div.onclick = () => openBook(i, isNT);
-            grid.appendChild(div);
+            let div = document.createElement('div'); div.className = 'grid-item'; div.innerText = b.name; div.setAttribute('dir', 'auto');
+            div.onclick = () => openBook(i, isNT); grid.appendChild(div);
         });
     };
 
-    renderGrid(activeData.NT, ntGrid, true);
-    renderGrid(activeData.OT, otGrid, false);
-
-    renderBookmarksList();
-    pushNavState('home');
+    renderGrid(activeData.NT, ntGrid, true); renderGrid(activeData.OT, otGrid, false);
+    renderBookmarksList(); pushNavState('home');
 }
 
 function renderBookmarksList() {
-    const list = document.getElementById('bookmarksList');
-    list.innerHTML = '';
-    if (state.bookmarks.length === 0) {
-        list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9em; padding: 0 10px;">No bookmarks yet.</p>';
-        return;
-    }
+    const list = document.getElementById('bookmarksList'); list.innerHTML = '';
+    if (state.bookmarks.length === 0) { list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9em; padding: 0 10px;">No bookmarks yet.</p>'; return; }
     state.bookmarks.forEach(bm => list.appendChild(createBookmarkElement(bm)));
 }
 
 function openBook(index, isNT) {
-    hideAllViews();
-    document.getElementById('view-chapters').classList.add('active');
+    hideAllViews(); document.getElementById('view-chapters').classList.add('active');
     
-    document.getElementById('navBack').style.display = 'flex';
-    document.getElementById('navBack').onclick = renderHome;
-    document.getElementById('transSelect').style.display = 'none';
-    
+    document.getElementById('navBack').style.display = 'flex'; document.getElementById('navBack').onclick = renderHome;
+    document.getElementById('transSelectWrapper').style.display = 'none';
     updateResumeFabVisibility();
     
     const book = isNT ? activeData.NT[index] : activeData.OT[index];
     document.getElementById('headerTitle').innerText = book.name;
 
-    const grid = document.getElementById('chapterGrid');
-    grid.innerHTML = '';
+    const grid = document.getElementById('chapterGrid'); grid.innerHTML = '';
     for(let i=1; i<book.chapters.length; i++) {
         if(!book.chapters[i] || book.chapters[i].length === 0) continue;
-        let div = document.createElement('div');
-        div.className = 'grid-item'; div.innerText = i;
-        div.onclick = () => openChapter(book.name, isNT, i, false);
-        grid.appendChild(div);
+        let div = document.createElement('div'); div.className = 'grid-item'; div.innerText = i;
+        div.onclick = () => openChapter(book.name, isNT, i, false); grid.appendChild(div);
     }
     
-    const bkmDetails = document.getElementById('bookBookmarksDetails');
-    const bkmList = document.getElementById('bookBookmarksList');
+    const bkmDetails = document.getElementById('bookBookmarksDetails'), bkmList = document.getElementById('bookBookmarksList');
     bkmList.innerHTML = '';
-    
     const bkBookmarks = state.bookmarks.filter(bm => bm.book === book.name);
     bkmDetails.style.display = 'block';
-    if (bkBookmarks.length > 0) {
-        bkBookmarks.forEach(bm => bkmList.appendChild(createBookmarkElement(bm)));
-    } else {
-        bkmList.innerHTML = '<p style="color:var(--text-muted); font-size:0.9em; padding: 0 10px;">No bookmarks yet.</p>';
-    }
+    if (bkBookmarks.length > 0) { bkBookmarks.forEach(bm => bkmList.appendChild(createBookmarkElement(bm))); } 
+    else { bkmList.innerHTML = '<p style="color:var(--text-muted); font-size:0.9em; padding: 0 10px;">No bookmarks yet.</p>'; }
+    
     pushNavState('chapters');
 }
 
 function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVerseNum = null) {
-    cancelSpeech();
-    currentIsNT = isNT;
-    currentChapter = chapterNum;
+    cancelSpeech(); currentIsNT = isNT; currentChapter = chapterNum;
     const testament = isNT ? activeData.NT : activeData.OT;
     currentBookIndex = testament.findIndex(b => b.name === bookName);
     
-    const book = testament[currentBookIndex];
-    if(!book) return renderHome();
+    const book = testament[currentBookIndex]; if(!book) return renderHome();
 
-    state.lastBook = { name: book.name, isNT: isNT };
-    state.lastChap = chapterNum;
-    saveState();
-
+    state.lastBook = { name: book.name, isNT: isNT }; state.lastChap = chapterNum; saveState();
     hideAllViews();
     
     document.getElementById('navBack').style.display = 'flex';
     document.getElementById('navBack').onclick = () => openBook(currentBookIndex, currentIsNT);
-    document.getElementById('transSelect').style.display = 'none';
+    document.getElementById('transSelectWrapper').style.display = 'none';
     document.getElementById('headerTitle').innerText = `${book.name} ${chapterNum}`;
     
-    const readerView = document.getElementById('view-reader');
-    readerView.classList.add('active');
-    
-    document.getElementById('bottomBar').classList.add('visible');
-    updateSelectionFabs();
+    const readerView = document.getElementById('view-reader'); readerView.classList.add('active');
+    document.getElementById('bottomBar').classList.add('visible'); updateSelectionFabs();
 
-    const container = document.getElementById('readerContent');
-    container.innerHTML = '';
-    selectedVerses.clear();
-    updateSelectionFabs();
+    const container = document.getElementById('readerContent'); container.innerHTML = '';
+    selectedVerses.clear(); updateSelectionFabs();
 
     const verses = book.chapters[chapterNum];
-    
-    let textDirection = 'ltr';
-    if (state.source === 'getbible' && translationMeta[state.translation] && translationMeta[state.translation].direction) {
-        textDirection = translationMeta[state.translation].direction.toLowerCase();
-    }
+    let textDirection = (state.source === 'getbible' && translationMeta[state.translation] && translationMeta[state.translation].direction) ? translationMeta[state.translation].direction.toLowerCase() : 'ltr';
     container.setAttribute('dir', textDirection);
 
     verses.forEach((text, vNum) => {
         if (!text) return;
-        let p = document.createElement('p');
-        p.className = 'verse';
-        p.id = `v${vNum}`;
+        let p = document.createElement('p'); p.className = 'verse'; p.id = `v${vNum}`;
         p.innerHTML = `<span class="verse-num">${vNum}</span>${text}`;
         
         if (isVerseBookmarked(vNum)) p.classList.add('bookmarked');
-
         p.onclick = () => toggleVerseSelection(p, vNum);
         
         let versePressTimer = null;
         p.addEventListener('pointerdown', (e) => {
             versePressTimer = setTimeout(() => {
-                copySingleVerse(book.name, chapterNum, vNum, text);
-                if ('vibrate' in navigator) navigator.vibrate(40);
-                p.style.filter = 'brightness(1.5)';
-                setTimeout(() => p.style.filter = '', 200);
+                copySingleVerse(book.name, chapterNum, vNum, text); if ('vibrate' in navigator) navigator.vibrate(40);
+                p.style.filter = 'brightness(1.5)'; setTimeout(() => p.style.filter = '', 200);
             }, 600);
         });
         p.addEventListener('pointerup', () => clearTimeout(versePressTimer));
         p.addEventListener('pointerleave', () => clearTimeout(versePressTimer));
         p.addEventListener('pointercancel', () => clearTimeout(versePressTimer));
-        p.oncontextmenu = (e) => {
-            e.preventDefault();
-            copySingleVerse(book.name, chapterNum, vNum, text);
-        };
+        p.oncontextmenu = (e) => { e.preventDefault(); copySingleVerse(book.name, chapterNum, vNum, text); };
         
         container.appendChild(p);
     });
 
     if (scrollToVerse && targetVerseNum) {
-        setTimeout(() => {
-            let targetEl = document.getElementById(`v${targetVerseNum}`);
-            if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 100);
-    } else {
-        readerView.scrollTop = 0;
-    }
+        setTimeout(() => { let targetEl = document.getElementById(`v${targetVerseNum}`); if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+    } else { readerView.scrollTop = 0; }
+    
     pushNavState('reader');
 }
 
@@ -1362,13 +1142,8 @@ function hideAllViews() {
    INTERACTIONS: Selection, Copy, Share, Bookmark
 ========================================= */
 function toggleVerseSelection(element, vNum) {
-    if (selectedVerses.has(vNum)) {
-        selectedVerses.delete(vNum);
-        element.classList.remove('selected');
-    } else {
-        selectedVerses.add(vNum);
-        element.classList.add('selected');
-    }
+    if (selectedVerses.has(vNum)) { selectedVerses.delete(vNum); element.classList.remove('selected'); } 
+    else { selectedVerses.add(vNum); element.classList.add('selected'); }
     updateSelectionFabs();
 }
 
@@ -1378,47 +1153,32 @@ function updateSelectionFabs() {
         fabs.classList.add('visible');
         let allBookmarked = Array.from(selectedVerses).every(v => isVerseBookmarked(v));
         document.getElementById('bookmarkFabIcon').innerText = allBookmarked ? 'bookmark_remove' : 'bookmark';
-    } else {
-        fabs.classList.remove('visible');
-    }
+    } else { fabs.classList.remove('visible'); }
 }
 
 function getSelectedTextData() {
-    const book = getCurrentBook();
-    const sortedVerses = Array.from(selectedVerses).sort((a,b) => a-b);
-    let textOut = "";
-    sortedVerses.forEach(vNum => { textOut += `[${vNum}] ${book.chapters[currentChapter][vNum]} `; });
-    
+    const book = getCurrentBook(), sortedVerses = Array.from(selectedVerses).sort((a,b) => a-b);
+    let textOut = ""; sortedVerses.forEach(vNum => { textOut += `[${vNum}] ${book.chapters[currentChapter][vNum]} `; });
     let ref = `${book.name} ${currentChapter}:`;
-    if(sortedVerses.length === 1) ref += sortedVerses[0];
-    else ref += `${sortedVerses[0]}-${sortedVerses[sortedVerses.length-1]}`;
-    
+    if(sortedVerses.length === 1) ref += sortedVerses[0]; else ref += `${sortedVerses[0]}-${sortedVerses[sortedVerses.length-1]}`;
     return { text: textOut.trim(), ref: ref, firstV: sortedVerses[0] };
 }
 
 function getFullSelectedText() {
-    const data = getSelectedTextData();
-    return `${data.text} — ${data.ref} (${state.translation.toUpperCase()})`;
+    const data = getSelectedTextData(); return `${data.text} — ${data.ref} (${state.translation.toUpperCase()})`;
 }
 
-function copySelected() {
-    navigator.clipboard.writeText(getFullSelectedText()).then(clearSelection);
-}
+function copySelected() { navigator.clipboard.writeText(getFullSelectedText()).then(clearSelection); }
 
 function copySingleVerse(book, chap, verseNum, text) {
-    const fullText = `${text} — ${book} ${chap}:${verseNum} (${state.translation.toUpperCase()})`;
-    navigator.clipboard.writeText(fullText);
+    navigator.clipboard.writeText(`${text} — ${book} ${chap}:${verseNum} (${state.translation.toUpperCase()})`);
 }
 
 async function shareSelected() {
     const fullText = getFullSelectedText();
     if (navigator.share) {
-        try { await navigator.share({ title: 'Vult Bible App', text: fullText }); clearSelection(); } 
-        catch (err) { console.log('Share error:', err); }
-    } else {
-        copySelected();
-        alert("Text copied to clipboard!");
-    }
+        try { await navigator.share({ title: 'Vult Bible App', text: fullText }); clearSelection(); } catch (err) {}
+    } else { copySelected(); alert("Text copied to clipboard!"); }
 }
 
 function isVerseBookmarked(vNum) {
@@ -1434,21 +1194,17 @@ function toggleBookmarks() {
     if (allBookmarked) {
         selectedVerses.forEach(vNum => {
             state.bookmarks = state.bookmarks.filter(b => !(b.trans === state.translation && b.book === bookName && b.chapter === currentChapter && b.verse === vNum));
-            const el = document.getElementById(`v${vNum}`);
-            if(el) el.classList.remove('bookmarked');
+            const el = document.getElementById(`v${vNum}`); if(el) el.classList.remove('bookmarked');
         });
     } else {
         const book = getCurrentBook();
         selectedVerses.forEach(vNum => {
             if (!isVerseBookmarked(vNum)) {
                 state.bookmarks.push({
-                    ref: `${bookName} ${currentChapter}:${vNum}`,
-                    book: bookName, chapter: currentChapter, verse: vNum,
-                    text: book.chapters[currentChapter][vNum].substring(0, 50) + '...',
-                    trans: state.translation
+                    ref: `${bookName} ${currentChapter}:${vNum}`, book: bookName, chapter: currentChapter, verse: vNum,
+                    text: book.chapters[currentChapter][vNum].substring(0, 50) + '...', trans: state.translation
                 });
-                const el = document.getElementById(`v${vNum}`);
-                if(el) el.classList.add('bookmarked');
+                const el = document.getElementById(`v${vNum}`); if(el) el.classList.add('bookmarked');
             }
         });
     }
@@ -1456,9 +1212,7 @@ function toggleBookmarks() {
 }
 
 function clearSelection() {
-    selectedVerses.clear();
-    document.querySelectorAll('.verse.selected').forEach(el => el.classList.remove('selected'));
-    updateSelectionFabs();
+    selectedVerses.clear(); document.querySelectorAll('.verse.selected').forEach(el => el.classList.remove('selected')); updateSelectionFabs();
 }
 
 /* =========================================
@@ -1467,105 +1221,65 @@ function clearSelection() {
 function togglePlay() {
     if (!synth) return;
     if (isPlaying) {
-        isPlaying = false;
-        if (synth) synth.cancel();
-        releaseWakeLock();
+        isPlaying = false; if (synth) synth.cancel(); releaseWakeLock();
         document.getElementById('playIcon').innerText = 'play_circle';
         document.querySelectorAll('.verse.playing').forEach(el => el.classList.add('paused'));
     } else {
-        let startIdx = 1;
-        const playingEl = document.querySelector('.verse.playing');
-        
-        if (playingEl) {
-            let vMatch = playingEl.id.match(/^v(\d+)$/);
-            if (vMatch) startIdx = parseInt(vMatch[1]);
-        } else if (playingIndex !== -1) {
-            startIdx = playingIndex;
-        } else if (selectedVerses.size > 0) {
-            startIdx = Math.min(...Array.from(selectedVerses));
-            clearSelection();
-        }
+        let startIdx = 1; const playingEl = document.querySelector('.verse.playing');
+        if (playingEl) { let vMatch = playingEl.id.match(/^v(\d+)$/); if (vMatch) startIdx = parseInt(vMatch[1]); } 
+        else if (playingIndex !== -1) { startIdx = playingIndex; } 
+        else if (selectedVerses.size > 0) { startIdx = Math.min(...Array.from(selectedVerses)); clearSelection(); }
         playVerse(startIdx);
     }
 }
 
 function playVerse(vNum) {
     if (!synth) return;
-    isPlaying = false;
-    if (synth) synth.cancel();
+    isPlaying = false; if (synth) synth.cancel();
     
     const verses = getCurrentBook().chapters[currentChapter];
     while(!verses[vNum] && vNum < verses.length) vNum++;
     
     if (vNum >= verses.length) { nextChapter(true); return; }
 
-    playingIndex = vNum;
-    highlightPlayingVerse();
+    playingIndex = vNum; highlightPlayingVerse();
 
     currentUtterance = new SpeechSynthesisUtterance(verses[vNum]);
-    if (state.voiceURI) {
-        let voice = voices.find(v => v.voiceURI === state.voiceURI);
-        if (voice) currentUtterance.voice = voice;
-    }
-    currentUtterance.rate = state.rate;
-    currentUtterance.onend = () => { if (isPlaying) playVerse(vNum + 1); };
+    if (state.voiceURI) { let voice = voices.find(v => v.voiceURI === state.voiceURI); if (voice) currentUtterance.voice = voice; }
+    currentUtterance.rate = state.rate; currentUtterance.onend = () => { if (isPlaying) playVerse(vNum + 1); };
 
-    isPlaying = true;
-    requestWakeLock();
-    document.getElementById('playIcon').innerText = 'pause_circle';
-    synth.speak(currentUtterance);
+    isPlaying = true; requestWakeLock(); document.getElementById('playIcon').innerText = 'pause_circle'; synth.speak(currentUtterance);
 }
 
 function highlightPlayingVerse() {
-    document.querySelectorAll('.verse.playing').forEach(el => {
-        el.classList.remove('playing'); el.classList.remove('paused');
-    });
+    document.querySelectorAll('.verse.playing').forEach(el => { el.classList.remove('playing'); el.classList.remove('paused'); });
     let el = document.getElementById(`v${playingIndex}`);
-    if (el) {
-        el.classList.add('playing');
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    if (el) { el.classList.add('playing'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 }
 
 function cancelSpeech() {
-    isPlaying = false; currentUtterance = null; releaseWakeLock();
-    if (synth) synth.cancel();
+    isPlaying = false; currentUtterance = null; releaseWakeLock(); if (synth) synth.cancel();
     document.getElementById('playIcon').innerText = 'play_circle';
     document.querySelectorAll('.verse.playing').forEach(el => { el.classList.remove('playing'); el.classList.remove('paused'); });
 }
 
 function prevChapter() {
-    cancelSpeech(); playingIndex = -1;
-    let book = getCurrentBook();
-    if (currentChapter > 1) {
-        openChapter(book.name, currentIsNT, currentChapter - 1);
-    } else {
+    cancelSpeech(); playingIndex = -1; let book = getCurrentBook();
+    if (currentChapter > 1) { openChapter(book.name, currentIsNT, currentChapter - 1); } 
+    else {
         const testament = currentIsNT ? activeData.NT : activeData.OT;
-        if (currentBookIndex > 0) {
-            let prevBook = testament[currentBookIndex - 1];
-            openChapter(prevBook.name, currentIsNT, prevBook.chapters.length - 1);
-        } else if (currentIsNT && activeData.OT.length > 0) {
-            let otBook = activeData.OT[activeData.OT.length - 1];
-            openChapter(otBook.name, false, otBook.chapters.length - 1);
-        }
+        if (currentBookIndex > 0) { let prevBook = testament[currentBookIndex - 1]; openChapter(prevBook.name, currentIsNT, prevBook.chapters.length - 1); } 
+        else if (currentIsNT && activeData.OT.length > 0) { let otBook = activeData.OT[activeData.OT.length - 1]; openChapter(otBook.name, false, otBook.chapters.length - 1); }
     }
 }
 
 function nextChapter(autoPlay = false) {
-    cancelSpeech(); playingIndex = -1;
-    let book = getCurrentBook();
-    
-    if (currentChapter < book.chapters.length - 1) {
-        openChapter(book.name, currentIsNT, currentChapter + 1);
-    } else {
+    cancelSpeech(); playingIndex = -1; let book = getCurrentBook();
+    if (currentChapter < book.chapters.length - 1) { openChapter(book.name, currentIsNT, currentChapter + 1); } 
+    else {
         const testament = currentIsNT ? activeData.NT : activeData.OT;
-        if (currentBookIndex < testament.length - 1) {
-            let nextBook = testament[currentBookIndex + 1];
-            openChapter(nextBook.name, currentIsNT, 1);
-        } else if (!currentIsNT && activeData.NT.length > 0) {
-            let ntBook = activeData.NT[0];
-            openChapter(ntBook.name, true, 1);
-        }
+        if (currentBookIndex < testament.length - 1) { let nextBook = testament[currentBookIndex + 1]; openChapter(nextBook.name, currentIsNT, 1); } 
+        else if (!currentIsNT && activeData.NT.length > 0) { let ntBook = activeData.NT[0]; openChapter(ntBook.name, true, 1); }
     }
     if (autoPlay && synth) setTimeout(() => togglePlay(), 500);
 }
@@ -1575,90 +1289,68 @@ function nextChapter(autoPlay = false) {
 ========================================= */
 function openSettings() {
     document.getElementById('setTheme').value = state.theme;
-    const themeSelect = document.getElementById('setTheme');
-    document.getElementById('themeDisplay').innerText = themeSelect.options[themeSelect.selectedIndex].text;
+    document.getElementById('themeDisplay').innerText = document.getElementById('setTheme').options[document.getElementById('setTheme').selectedIndex].text;
     
     document.getElementById('setFontFam').value = state.fontFamily;
-    const fontSelect = document.getElementById('setFontFam');
-    document.getElementById('fontFamDisplay').innerText = fontSelect.options[fontSelect.selectedIndex].text;
+    document.getElementById('fontFamDisplay').innerText = document.getElementById('setFontFam').options[document.getElementById('setFontFam').selectedIndex].text;
     
     document.getElementById('fontSizeDisplay').innerText = state.fontSize;
     document.getElementById('rateDisplay').innerText = state.rate.toFixed(1);
     document.getElementById('setPanic').checked = state.panicEnabled;
     
     document.getElementById('setSource').value = state.source;
-    const sourceSelect = document.getElementById('setSource');
-    document.getElementById('sourceDisplay').innerText = sourceSelect.options[sourceSelect.selectedIndex].text;
+    document.getElementById('sourceDisplay').innerText = document.getElementById('setSource').options[document.getElementById('setSource').selectedIndex].text;
 
     if (synth) populateVoices();
     
-    document.getElementById('settingsModal').showModal();
-    pushNavState('modal-settings');
+    // Disable install row dynamically if PWA or iOS device
+    if (isRunningStandalone() || isIOSDevice()) {
+        document.getElementById('installRowContainer').style.display = 'none';
+    } else {
+        document.getElementById('installRowContainer').style.display = 'flex';
+    }
+    
+    document.getElementById('settingsModal').showModal(); pushNavState('modal-settings');
 }
 
 function closeSettings() { document.getElementById('settingsModal').close(); }
 
 function changeFontSize(delta) {
     let newVal = state.fontSize + delta;
-    if (newVal >= 12 && newVal <= 32) {
-        state.fontSize = newVal;
-        document.getElementById('fontSizeDisplay').innerText = state.fontSize;
-        applySettings(); saveState();
-    }
+    if (newVal >= 12 && newVal <= 32) { state.fontSize = newVal; document.getElementById('fontSizeDisplay').innerText = state.fontSize; applySettings(); saveState(); }
 }
 
 function changeSpeechRate(delta) {
     let newVal = state.rate + delta;
-    if (newVal >= 0.5 && newVal <= 2.0) {
-        state.rate = newVal;
-        document.getElementById('rateDisplay').innerText = state.rate.toFixed(1);
-        saveState();
-    }
+    if (newVal >= 0.5 && newVal <= 2.0) { state.rate = newVal; document.getElementById('rateDisplay').innerText = state.rate.toFixed(1); saveState(); }
 }
 
 document.getElementById('setTheme').addEventListener('change', (e) => { 
-    state.theme = e.target.value; 
-    document.getElementById('themeDisplay').innerText = e.target.options[e.target.selectedIndex].text;
-    applySettings(); saveState(); 
+    state.theme = e.target.value; document.getElementById('themeDisplay').innerText = e.target.options[e.target.selectedIndex].text; applySettings(); saveState(); 
 });
 
 document.getElementById('setFontFam').addEventListener('change', (e) => { 
-    state.fontFamily = e.target.value; 
-    document.getElementById('fontFamDisplay').innerText = e.target.options[e.target.selectedIndex].text;
-    applySettings(); saveState(); 
+    state.fontFamily = e.target.value; document.getElementById('fontFamDisplay').innerText = e.target.options[e.target.selectedIndex].text; applySettings(); saveState(); 
 });
 
 document.getElementById('setVoice').addEventListener('change', (e) => { 
-    state.voiceURI = e.target.value; 
-    document.getElementById('voiceDisplay').innerText = e.target.options[e.target.selectedIndex].text;
-    saveState(); 
+    state.voiceURI = e.target.value; document.getElementById('voiceDisplay').innerText = e.target.options[e.target.selectedIndex].text; saveState(); 
 });
 
 document.getElementById('setPanic').addEventListener('change', (e) => { 
-    state.panicEnabled = e.target.checked; 
-    saveState(); 
-    document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none';
-    updateDynamicManifest();
+    state.panicEnabled = e.target.checked; saveState(); document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none'; updateDynamicManifest();
 });
 
 document.getElementById('setSource').addEventListener('change', async (e) => { 
-    state.source = e.target.value; 
-    document.getElementById('sourceDisplay').innerText = e.target.options[e.target.selectedIndex].text;
-    saveState(); 
-    
+    state.source = e.target.value; document.getElementById('sourceDisplay').innerText = e.target.options[e.target.selectedIndex].text; saveState(); 
     if (state.secretUnlocked) {
-        document.body.classList.add('is-loading');
-        await populateTranslations();
-        document.getElementById('transSelect').value = state.translation;
-        activeData = { OT: [], NT: [] };
-        const success = await loadBibleData();
-        if(success) renderHome();
+        document.body.classList.add('is-loading'); await populateTranslations(); document.getElementById('transSelect').value = state.translation; updateTransDisplay();
+        activeData = { OT: [], NT: [] }; const success = await loadBibleData(); if(success) renderHome();
     }
 });
 
 document.getElementById('transSelect').addEventListener('change', async (e) => {
-    await switchTranslation(e.target.value);
-    renderHome();
+    updateTransDisplay(); await switchTranslation(e.target.value); renderHome();
 });
 
 function applySettings() {
@@ -1670,22 +1362,15 @@ function applySettings() {
 function populateVoices() {
     if (!synth) return;
     voices = synth.getVoices();
-    const select = document.getElementById('setVoice');
-    select.innerHTML = '';
+    const select = document.getElementById('setVoice'); select.innerHTML = '';
     
-    let defaultOpt = document.createElement('option');
-    defaultOpt.value = ''; defaultOpt.innerText = 'System Default';
-    select.appendChild(defaultOpt);
+    let defaultOpt = document.createElement('option'); defaultOpt.value = ''; defaultOpt.innerText = 'System Default'; select.appendChild(defaultOpt);
 
     voices.forEach(v => {
-        let opt = document.createElement('option');
-        opt.value = v.voiceURI; opt.innerText = `${v.name} (${v.lang})`;
-        select.appendChild(opt);
+        let opt = document.createElement('option'); opt.value = v.voiceURI; opt.innerText = `${v.name} (${v.lang})`; select.appendChild(opt);
     });
     
-    if (state.voiceURI && select.querySelector(`option[value="${state.voiceURI}"]`)) select.value = state.voiceURI;
-    else select.value = '';
-    
+    if (state.voiceURI && select.querySelector(`option[value="${state.voiceURI}"]`)) select.value = state.voiceURI; else select.value = '';
     if (select.selectedIndex >= 0) document.getElementById('voiceDisplay').innerText = select.options[select.selectedIndex].text;
 }
 
@@ -1696,9 +1381,7 @@ if (synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = popula
 ========================================= */
 function triggerPanic() {
     cancelSpeech(); playingIndex = -1; clearSelection();
-    if (state.panicEnabled) {
-        state.secretUnlocked = false; showCalculator();
-    }
+    if (state.panicEnabled) { state.secretUnlocked = false; showCalculator(); }
 }
 
 window.onload = init;
