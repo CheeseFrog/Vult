@@ -58,7 +58,13 @@
             -webkit-tap-highlight-color: transparent; 
             -webkit-touch-callout: none;
             -webkit-user-select: none;
+            -moz-user-select: none;
             user-select: none;
+        }
+        
+        button, input, select, textarea {
+            font-family: inherit;
+            font-size: inherit;
         }
         
         /* Base App Font is fixed to iOS standards, isolating the reader settings */
@@ -84,7 +90,11 @@
         #app-calculator-wrapper { width: 100vw; height: 100vh; height: 100dvh; display: flex; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; background-color: var(--calc-bg); z-index: 10; }
         #app-calculator { display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; width: 100%; max-width: 450px; height: 100%; max-height: 800px; margin: auto; position: relative; }
         .calc-display { flex: 1; display: flex; align-items: flex-end; justify-content: flex-end; font-size: 5rem; font-weight: 300; color: var(--calc-text); padding-bottom: 20px; word-break: break-all; }
+        
         .calc-help { position: absolute; top: 20px; left: 20px; color: var(--calc-btn-num); font-size: 1.5rem; cursor: pointer; }
+        /* Real-time CSS-only hide toggle for calc help button based on the checkbox in the dialog */
+        body:has(#showHelpCheck:not(:checked)) #calcHelpBtn { display: none; }
+        
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         .calc-btn { aspect-ratio: 1; border-radius: 50%; border: none; font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: filter 0.2s; }
         .calc-btn:active { filter: brightness(1.4); }
@@ -122,7 +132,6 @@
         /* iOS Settings List Styling */
         .ios-list { background: var(--bg-color); border-radius: 10px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); }
         
-        /* FIXED ROW HEIGHT CSS */
         .ios-row { 
             display: flex; 
             justify-content: space-between; 
@@ -241,13 +250,38 @@
         .fab-panic { background: #ff3b30; color: white; width: 56px; height: 56px; border-radius: 50%; bottom: 20px; right: 20px; }
         .panic-symbol { font-size: 28px; line-height: 1; font-weight: 400; font-family: '-apple-system', sans-serif; }
         
-        /* Pill-shaped Resume FAB (Bottom Left - Home/Chapter view) */
-        #resumeFab { 
-            background: var(--surface-color); color: var(--primary-color); height: 56px; width: auto; 
-            padding: 0 20px; border-radius: 28px; bottom: 20px; left: 20px; display: none; align-items: center; 
-            gap: 10px; font-weight: 600; font-size: 0.95rem; max-width: calc(100vw - 100px); box-sizing: border-box; 
+        /* Scrolling Resume Pills Area (Bottom Left) */
+        .resume-wrapper {
+            position: fixed; bottom: 20px; left: 0; right: 85px; 
+            height: 56px; z-index: 40; display: none; transition: bottom 0.3s;
+            mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%);
         }
-        #resumeFab .resume-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .resume-scroll {
+            display: flex; gap: 10px; height: 100%; overflow-x: auto;
+            scrollbar-width: none; -ms-overflow-style: none; padding-left: 20px; padding-right: 40px;
+        }
+        .resume-scroll::-webkit-scrollbar { display: none; }
+        
+        /* When panic is disabled, extend to edge and remove mask */
+        body:not(.panic-active) .resume-wrapper {
+            right: 0;
+            mask-image: none;
+            -webkit-mask-image: none;
+        }
+        body:not(.panic-active) .resume-scroll {
+            padding-right: 20px;
+        }
+
+        .fab-resume {
+            background: var(--surface-color); color: var(--primary-color); height: 100%;
+            border-radius: 28px; display: flex; align-items: center; gap: 8px; padding: 0 20px;
+            font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            border: none; cursor: pointer; flex-shrink: 0; max-width: calc(100vw - 40px);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .fab-resume:active { transform: scale(0.95); background: var(--surface-color-active); }
+        .fab-resume .resume-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* Selection FABs (Bottom Left - Reader view) */
         .selection-fabs { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: row; gap: 15px; transform: scale(0); transition: transform 0.2s, bottom 0.3s; z-index: 40; pointer-events: none; }
@@ -262,9 +296,10 @@
         .bb-btn.play-btn { color: var(--primary-color); }
         .bb-btn.play-btn .material-symbols-rounded { font-size: 48px; }
 
-        /* Shift UP Left FABs and Right Panic FAB when Bottom Bar is visible */
+        /* Shift UP Left FABs, Scrolling Wrapper, and Right Panic FAB when Bottom Bar is visible */
         #app-bible:has(.bottom-bar.visible) .fab-panic,
-        #app-bible:has(.bottom-bar.visible) .selection-fabs { bottom: 90px; }
+        #app-bible:has(.bottom-bar.visible) .selection-fabs,
+        #app-bible:has(.bottom-bar.visible) .resume-wrapper { bottom: 90px; }
 
         /* Toast Notification */
         .toast {
@@ -414,7 +449,6 @@
         </div>
 
         <div class="ios-list">
-            <!-- Install App Row (Dynamically Hidden if PWA or iOS) -->
             <div class="ios-row" id="installRowContainer" onclick="handleInstallClick()" style="cursor: pointer;">
                 <div class="ios-row-label">Install to Home Screen</div>
                 <div class="ios-row-control">
@@ -445,7 +479,7 @@
                 </div>
             </div>
             
-            <h1 id="headerTitle">Vul±</h1>
+            <h1 id="headerTitle">Vult</h1>
             
             <div class="header-right">
                 <button class="header-btn" onclick="openSettings()">
@@ -488,11 +522,12 @@
             <div id="readerContent"></div>
         </div>
 
-        <!-- PILL RESUME FAB (Bottom Left - Home & Chapters view) -->
-        <button class="fab" id="resumeFab" onclick="resumeLastLocation()">
-            <span class="material-symbols-rounded">auto_stories</span>
-            <span class="resume-text" id="resumeFabText"></span>
-        </button>
+        <!-- SCROLLING RESUME PILLS (Bottom Left - Home & Chapters view) -->
+        <div class="resume-wrapper" id="resumeWrapper">
+            <div class="resume-scroll" id="resumeScroll">
+                <!-- Dynamically populated buttons -->
+            </div>
+        </div>
 
         <!-- SELECTION FABS (Bottom Left - Reader view) -->
         <div class="selection-fabs" id="selectionFabs">
@@ -533,7 +568,7 @@
 let state = {
     theme: 'dark', fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', Arial, sans-serif", fontSize: 18,
     panicEnabled: true, voiceURI: '', rate: 1, translation: 'kjv',
-    bookmarks: [], lastBook: null, lastChap: null, secretUnlocked: false,
+    bookmarks: [], recentLocations: [], secretUnlocked: false,
     source: 'getbible'
 };
 
@@ -693,17 +728,12 @@ window.onpopstate = function (event) {
     if (navBackBtn && navBackBtn.style.display !== 'none' && typeof navBackBtn.onclick === 'function') {
         navBackBtn.onclick();
     } else if (state.secretUnlocked) {
-        // Intercept back action on root home view
         if (backPressCount === 0) {
-            backPressCount++;
-            showToast("Go back again to exit");
-            history.pushState({ view: 'home' }, '');
+            backPressCount++; showToast("Go back again to exit"); history.pushState({ view: 'home' }, '');
             backPressTimer = setTimeout(() => { backPressCount = 0; }, 2000);
         } else {
-            clearTimeout(backPressTimer);
-            backPressCount = 0;
-            if (state.panicEnabled) { triggerPanic(); } 
-            else { history.go(-2); }
+            clearTimeout(backPressTimer); backPressCount = 0;
+            if (state.panicEnabled) { triggerPanic(); } else { history.go(-2); }
         }
     }
     
@@ -727,6 +757,11 @@ function init() {
     } else {
         showCalculator();
     }
+    
+    // Sync checkbox event to store the local setting for real-time CSS matching
+    document.getElementById('showHelpCheck').addEventListener('change', (e) => {
+        localStorage.setItem('vult_hideHelp', (!e.target.checked).toString());
+    });
 }
 
 function setupDialogDismiss() {
@@ -778,7 +813,25 @@ document.addEventListener('visibilitychange', async () => {
 function loadState() {
     const saved = localStorage.getItem('vult_state');
     if (saved) state = { ...state, ...JSON.parse(saved) };
-    if (localStorage.getItem('vult_hideHelp')) document.getElementById('calcHelpBtn').style.display = 'none';
+    
+    // Check local pref for CSS-driven help button
+    if (localStorage.getItem('vult_hideHelp') === 'true') {
+        const helpChk = document.getElementById('showHelpCheck');
+        if (helpChk) helpChk.checked = false;
+    }
+
+    // Backwards Compatibility: Migrate single lastBook into recentLocations array
+    if (state.lastBook && state.lastChap && (!state.recentLocations || state.recentLocations.length === 0)) {
+        state.recentLocations = [{
+            book: state.lastBook.name,
+            isNT: state.lastBook.isNT,
+            chap: state.lastChap,
+            trans: state.lastTrans || state.translation
+        }];
+        delete state.lastBook; delete state.lastChap; delete state.lastTrans;
+        saveState();
+    }
+    if (!state.recentLocations) state.recentLocations = [];
 }
 
 function saveState() { localStorage.setItem('vult_state', JSON.stringify(state)); }
@@ -817,9 +870,6 @@ document.getElementById('calcHelpBtn').addEventListener('click', () => {
 
 function closeHelp() {
     document.getElementById('helpModal').close();
-    if(!document.getElementById('showHelpCheck').checked) {
-        localStorage.setItem('vult_hideHelp', 'true'); document.getElementById('calcHelpBtn').style.display = 'none';
-    }
 }
 
 /* =========================================
@@ -972,10 +1022,12 @@ async function openBibleApp() {
     const success = await loadBibleData();
     document.body.classList.remove('is-loading');
     
-    if (success && state.lastBook && state.lastChap) {
-        let isNT = activeData.NT.some(b => b.name === state.lastBook.name);
-        let exists = isNT || activeData.OT.some(b => b.name === state.lastBook.name);
-        if(exists) { pushNavState('home'); pushNavState('chapters'); openChapter(state.lastBook.name, isNT, state.lastChap, false); }
+    if (success && state.recentLocations && state.recentLocations.length > 0) {
+        const primaryLoc = state.recentLocations[0];
+        if (primaryLoc.trans !== state.translation) { await switchTranslation(primaryLoc.trans); }
+        let isNT = activeData.NT.some(b => b.name === primaryLoc.book);
+        let exists = isNT || activeData.OT.some(b => b.name === primaryLoc.book);
+        if(exists) { pushNavState('home'); pushNavState('chapters'); openChapter(primaryLoc.book, isNT, primaryLoc.chap, false); }
         else { renderHome(); }
     } else { renderHome(); }
 }
@@ -992,21 +1044,42 @@ function createBookmarkElement(bm) {
     return div;
 }
 
-function resumeLastLocation() {
-    if (state.lastBook && state.lastChap) {
-        let isNT = activeData.NT.some(b => b.name === state.lastBook.name);
-        let exists = isNT || activeData.OT.some(b => b.name === state.lastBook.name);
-        if(exists) openChapter(state.lastBook.name, isNT, state.lastChap, false);
+async function resumeLocation(index) {
+    if (!state.recentLocations || !state.recentLocations[index]) return;
+    const loc = state.recentLocations[index];
+    if (await switchTranslation(loc.trans)) {
+        let isNT = activeData.NT.some(b => b.name === loc.book);
+        let exists = isNT || activeData.OT.some(b => b.name === loc.book);
+        if(exists) openChapter(loc.book, isNT, loc.chap, false);
     }
 }
 
 function updateResumeFabVisibility() {
-    const resumeFab = document.getElementById('resumeFab');
-    if (state.lastBook && state.lastChap) {
-        resumeFab.style.display = 'flex';
-        document.getElementById('resumeFabText').innerText = `${state.lastBook.name} ${state.lastChap} (${state.translation.toUpperCase()})`;
+    const wrapper = document.getElementById('resumeWrapper');
+    const scroll = document.getElementById('resumeScroll');
+    
+    if (state.recentLocations && state.recentLocations.length > 0) {
+        wrapper.style.display = 'block';
+        scroll.innerHTML = '';
+        state.recentLocations.forEach((loc, index) => {
+            let btn = document.createElement('button');
+            btn.className = 'fab-resume';
+            btn.onclick = () => resumeLocation(index);
+            
+            let icon = document.createElement('span');
+            icon.className = 'material-symbols-rounded';
+            icon.innerText = 'history';
+            
+            let text = document.createElement('span');
+            text.className = 'resume-text';
+            text.innerText = `${loc.book} ${loc.chap} (${loc.trans.toUpperCase()})`;
+            
+            btn.appendChild(icon);
+            btn.appendChild(text);
+            scroll.appendChild(btn);
+        });
     } else {
-        resumeFab.style.display = 'none';
+        wrapper.style.display = 'none';
     }
 }
 
@@ -1016,7 +1089,6 @@ function renderHome() {
     
     document.getElementById('navBack').style.display = 'none';
     document.getElementById('transSelectWrapper').style.display = 'flex';
-    
     document.getElementById('bottomBar').classList.remove('visible');
     
     updateResumeFabVisibility(); updateSelectionFabs();
@@ -1083,7 +1155,13 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
     
     const book = testament[currentBookIndex]; if(!book) return renderHome();
 
-    state.lastBook = { name: book.name, isNT: isNT }; state.lastChap = chapterNum; saveState();
+    // Manage Recent History State
+    const locObj = { book: book.name, isNT: isNT, chap: chapterNum, trans: state.translation };
+    state.recentLocations = state.recentLocations.filter(l => !(l.book === locObj.book && l.chap === locObj.chap));
+    state.recentLocations.unshift(locObj);
+    if (state.recentLocations.length > 3) state.recentLocations.pop();
+    saveState();
+    
     hideAllViews();
     
     document.getElementById('navBack').style.display = 'flex';
@@ -1134,7 +1212,7 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
 function hideAllViews() {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById('bottomBar').classList.remove('visible');
-    document.getElementById('resumeFab').style.display = 'none';
+    document.getElementById('resumeWrapper').style.display = 'none';
     updateSelectionFabs();
 }
 
@@ -1303,7 +1381,6 @@ function openSettings() {
 
     if (synth) populateVoices();
     
-    // Disable install row dynamically if PWA or iOS device
     if (isRunningStandalone() || isIOSDevice()) {
         document.getElementById('installRowContainer').style.display = 'none';
     } else {
@@ -1338,7 +1415,11 @@ document.getElementById('setVoice').addEventListener('change', (e) => {
 });
 
 document.getElementById('setPanic').addEventListener('change', (e) => { 
-    state.panicEnabled = e.target.checked; saveState(); document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none'; updateDynamicManifest();
+    state.panicEnabled = e.target.checked; 
+    saveState(); 
+    document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none'; 
+    document.body.classList.toggle('panic-active', state.panicEnabled);
+    updateDynamicManifest();
 });
 
 document.getElementById('setSource').addEventListener('change', async (e) => { 
@@ -1357,6 +1438,7 @@ function applySettings() {
     document.documentElement.setAttribute('data-theme', state.theme);
     document.documentElement.style.setProperty('--reader-font-family', state.fontFamily);
     document.documentElement.style.setProperty('--reader-font-size', state.fontSize + 'px');
+    document.body.classList.toggle('panic-active', state.panicEnabled);
 }
 
 function populateVoices() {
