@@ -680,7 +680,8 @@ async function handleInstallClick() {
             document.getElementById('installRowContainer').style.display = 'none';
         }
     } else {
-        alert("App can be installed from your browser menu.");
+        closeSettings();
+        showToast("App can be installed from your browser menu.");
     }
 }
 
@@ -1148,7 +1149,8 @@ function openBook(index, isNT) {
     pushNavState('chapters');
 }
 
-function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVerseNum = null) {
+// Added isContinuousNav parameter to determine if this should replace the top history item instead of creating a new one
+function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVerseNum = null, isContinuousNav = false) {
     cancelSpeech(); currentIsNT = isNT; currentChapter = chapterNum;
     const testament = isNT ? activeData.NT : activeData.OT;
     currentBookIndex = testament.findIndex(b => b.name === bookName);
@@ -1157,9 +1159,17 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
 
     // Manage Recent History State
     const locObj = { book: book.name, isNT: isNT, chap: chapterNum, trans: state.translation };
-    state.recentLocations = state.recentLocations.filter(l => !(l.book === locObj.book && l.chap === locObj.chap));
-    state.recentLocations.unshift(locObj);
-    if (state.recentLocations.length > 3) state.recentLocations.pop();
+    
+    if (isContinuousNav && state.recentLocations.length > 0) {
+        // Update the current session pill and remove any older duplicates of the new location further down the stack
+        let tail = state.recentLocations.slice(1).filter(l => !(l.book === locObj.book && l.chap === locObj.chap));
+        state.recentLocations = [locObj, ...tail];
+    } else {
+        // Standard non-continuous entry (push a new pill)
+        state.recentLocations = state.recentLocations.filter(l => !(l.book === locObj.book && l.chap === locObj.chap));
+        state.recentLocations.unshift(locObj);
+        if (state.recentLocations.length > 3) state.recentLocations.pop();
+    }
     saveState();
     
     hideAllViews();
@@ -1343,21 +1353,21 @@ function cancelSpeech() {
 
 function prevChapter() {
     cancelSpeech(); playingIndex = -1; let book = getCurrentBook();
-    if (currentChapter > 1) { openChapter(book.name, currentIsNT, currentChapter - 1); } 
+    if (currentChapter > 1) { openChapter(book.name, currentIsNT, currentChapter - 1, false, null, true); } 
     else {
         const testament = currentIsNT ? activeData.NT : activeData.OT;
-        if (currentBookIndex > 0) { let prevBook = testament[currentBookIndex - 1]; openChapter(prevBook.name, currentIsNT, prevBook.chapters.length - 1); } 
-        else if (currentIsNT && activeData.OT.length > 0) { let otBook = activeData.OT[activeData.OT.length - 1]; openChapter(otBook.name, false, otBook.chapters.length - 1); }
+        if (currentBookIndex > 0) { let prevBook = testament[currentBookIndex - 1]; openChapter(prevBook.name, currentIsNT, prevBook.chapters.length - 1, false, null, true); } 
+        else if (currentIsNT && activeData.OT.length > 0) { let otBook = activeData.OT[activeData.OT.length - 1]; openChapter(otBook.name, false, otBook.chapters.length - 1, false, null, true); }
     }
 }
 
 function nextChapter(autoPlay = false) {
     cancelSpeech(); playingIndex = -1; let book = getCurrentBook();
-    if (currentChapter < book.chapters.length - 1) { openChapter(book.name, currentIsNT, currentChapter + 1); } 
+    if (currentChapter < book.chapters.length - 1) { openChapter(book.name, currentIsNT, currentChapter + 1, false, null, true); } 
     else {
         const testament = currentIsNT ? activeData.NT : activeData.OT;
-        if (currentBookIndex < testament.length - 1) { let nextBook = testament[currentBookIndex + 1]; openChapter(nextBook.name, currentIsNT, 1); } 
-        else if (!currentIsNT && activeData.NT.length > 0) { let ntBook = activeData.NT[0]; openChapter(ntBook.name, true, 1); }
+        if (currentBookIndex < testament.length - 1) { let nextBook = testament[currentBookIndex + 1]; openChapter(nextBook.name, currentIsNT, 1, false, null, true); } 
+        else if (!currentIsNT && activeData.NT.length > 0) { let ntBook = activeData.NT[0]; openChapter(ntBook.name, true, 1, false, null, true); }
     }
     if (autoPlay && synth) setTimeout(() => togglePlay(), 500);
 }
