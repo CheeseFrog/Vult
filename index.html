@@ -127,7 +127,9 @@
         }
         dialog:focus-visible { outline: none; }
         dialog h3 { margin-bottom: 15px; font-weight: 600; text-align: center; }
-        .modal-btn { margin-top: 20px; width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: 600; }
+        .modal-btn { margin-top: 20px; width: 100%; padding: 12px; background: var(--surface-color-active); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+        .modal-btn:active { background: var(--border-color); }
+        .modal-btn.primary { background: var(--primary-color); color: white; border: none; }
 
         /* iOS Settings List Styling */
         .ios-list { background: var(--bg-color); border-radius: 10px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); }
@@ -252,13 +254,13 @@
         
         /* Scrolling Resume Pills Area (Bottom Left) */
         .resume-wrapper {
-            position: fixed; bottom: 20px; left: 0; right: 85px; 
-            height: 56px; z-index: 40; display: none; transition: bottom 0.3s;
+            position: fixed; bottom: 10px; left: 0; right: 85px; 
+            height: 76px; z-index: 40; display: none; transition: bottom 0.3s;
             mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%);
             -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%);
         }
         .resume-scroll {
-            display: flex; gap: 10px; height: 100%; overflow-x: auto;
+            display: flex; gap: 10px; height: 100%; overflow-x: auto; align-items: center;
             scrollbar-width: none; -ms-overflow-style: none; padding-left: 20px; padding-right: 40px;
         }
         .resume-scroll::-webkit-scrollbar { display: none; }
@@ -274,8 +276,8 @@
         }
 
         .fab-resume {
-            background: var(--surface-color); color: var(--primary-color); height: 100%;
-            border-radius: 28px; display: flex; align-items: center; gap: 8px; padding: 0 20px;
+            background: var(--surface-color); color: var(--primary-color); height: 48px;
+            border-radius: 24px; display: flex; align-items: center; gap: 8px; padding: 0 20px;
             font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             border: none; cursor: pointer; flex-shrink: 0; max-width: calc(100vw - 40px);
             transition: transform 0.2s, background 0.2s;
@@ -298,8 +300,9 @@
 
         /* Shift UP Left FABs, Scrolling Wrapper, and Right Panic FAB when Bottom Bar is visible */
         #app-bible:has(.bottom-bar.visible) .fab-panic,
-        #app-bible:has(.bottom-bar.visible) .selection-fabs,
-        #app-bible:has(.bottom-bar.visible) .resume-wrapper { bottom: 90px; }
+        #app-bible:has(.bottom-bar.visible) .selection-fabs { bottom: 90px; }
+        
+        #app-bible:has(.bottom-bar.visible) .resume-wrapper { bottom: 80px; }
 
         /* Toast Notification */
         .toast {
@@ -362,7 +365,32 @@
                 </div>
             </label>
         </div>
-        <button class="modal-btn" onclick="closeHelp()">Close</button>
+        <button class="modal-btn primary" onclick="document.getElementById('helpModal').close()">Close</button>
+    </dialog>
+
+    <!-- EXTERNAL STUDY MODAL -->
+    <dialog id="studyModal">
+        <h3>Further Study</h3>
+        <p style="text-align:center; margin-bottom: 20px; color: var(--text-muted); font-size: 0.9em;">Open your selected verses in a web browser for deeper commentary and cross-referencing.</p>
+        <div class="ios-list">
+            <div class="ios-row" onclick="openStudy('blb')">
+                <div class="ios-row-label">Blue Letter Bible</div>
+                <span class="material-symbols-rounded" style="color:var(--text-muted)">open_in_new</span>
+            </div>
+            <div class="ios-row" onclick="openStudy('hub')">
+                <div class="ios-row-label">Bible Hub</div>
+                <span class="material-symbols-rounded" style="color:var(--text-muted)">open_in_new</span>
+            </div>
+            <div class="ios-row" onclick="openStudy('gateway')">
+                <div class="ios-row-label">Bible Gateway</div>
+                <span class="material-symbols-rounded" style="color:var(--text-muted)">open_in_new</span>
+            </div>
+            <div class="ios-row" onclick="openStudy('youversion')">
+                <div class="ios-row-label">Bible.com <span style="font-size:0.85em; color:var(--text-muted);">(YouVersion)</span></div>
+                <span class="material-symbols-rounded" style="color:var(--text-muted)">open_in_new</span>
+            </div>
+        </div>
+        <button class="modal-btn" onclick="document.getElementById('studyModal').close()">Cancel</button>
     </dialog>
 
     <!-- SETTINGS MODAL -->
@@ -462,7 +490,7 @@
                 </div>
             </label>
         </div>
-        <button class="modal-btn" onclick="closeSettings()">Done</button>
+        <button class="modal-btn primary" onclick="closeSettings()">Done</button>
     </dialog>
 
     <!-- BIBLE APP (VULT) -->
@@ -539,6 +567,9 @@
             </button>
             <button class="fab fab-action" onclick="shareSelected()">
                 <span class="material-symbols-rounded">share</span>
+            </button>
+            <button class="fab fab-action" onclick="openStudyModal()">
+                <span class="material-symbols-rounded">travel_explore</span>
             </button>
         </div>
 
@@ -671,6 +702,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 window.addEventListener('appinstalled', () => { deferredPrompt = null; });
 
 async function handleInstallClick() {
+    closeSettings();
     if (deferredPrompt) {
         updateDynamicManifest();
         deferredPrompt.prompt();
@@ -680,7 +712,6 @@ async function handleInstallClick() {
             document.getElementById('installRowContainer').style.display = 'none';
         }
     } else {
-        closeSettings();
         showToast("App can be installed from your browser menu.");
     }
 }
@@ -719,7 +750,7 @@ function pushNavState(viewName) {
 window.onpopstate = function (event) {
     isPopState = true;
     
-    const dialogs = ['settingsModal', 'helpModal'];
+    const dialogs = ['settingsModal', 'helpModal', 'studyModal'];
     for(let id of dialogs) {
         let el = document.getElementById(id);
         if (el && el.open) { el.close(); isPopState = false; return; }
@@ -868,10 +899,6 @@ function updateDisplay() { document.getElementById('calcDisplay').innerText = di
 document.getElementById('calcHelpBtn').addEventListener('click', () => {
     document.getElementById('helpModal').showModal(); pushNavState('modal-help');
 });
-
-function closeHelp() {
-    document.getElementById('helpModal').close();
-}
 
 /* =========================================
    BIBLE TRANSLATIONS & DATA LOGIC
@@ -1149,7 +1176,6 @@ function openBook(index, isNT) {
     pushNavState('chapters');
 }
 
-// Added isContinuousNav parameter to determine if this should replace the top history item instead of creating a new one
 function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVerseNum = null, isContinuousNav = false) {
     cancelSpeech(); currentIsNT = isNT; currentChapter = chapterNum;
     const testament = isNT ? activeData.NT : activeData.OT;
@@ -1227,7 +1253,7 @@ function hideAllViews() {
 }
 
 /* =========================================
-   INTERACTIONS: Selection, Copy, Share, Bookmark
+   INTERACTIONS: Selection, Copy, Share, Bookmark, Study
 ========================================= */
 function toggleVerseSelection(element, vNum) {
     if (selectedVerses.has(vNum)) { selectedVerses.delete(vNum); element.classList.remove('selected'); } 
@@ -1249,7 +1275,7 @@ function getSelectedTextData() {
     let textOut = ""; sortedVerses.forEach(vNum => { textOut += `[${vNum}] ${book.chapters[currentChapter][vNum]} `; });
     let ref = `${book.name} ${currentChapter}:`;
     if(sortedVerses.length === 1) ref += sortedVerses[0]; else ref += `${sortedVerses[0]}-${sortedVerses[sortedVerses.length-1]}`;
-    return { text: textOut.trim(), ref: ref, firstV: sortedVerses[0] };
+    return { text: textOut.trim(), ref: ref, firstV: sortedVerses[0], lastV: sortedVerses[sortedVerses.length-1], isRange: sortedVerses.length > 1 };
 }
 
 function getFullSelectedText() {
@@ -1266,7 +1292,7 @@ async function shareSelected() {
     const fullText = getFullSelectedText();
     if (navigator.share) {
         try { await navigator.share({ title: 'Vult Bible App', text: fullText }); clearSelection(); } catch (err) {}
-    } else { copySelected(); alert("Text copied to clipboard!"); }
+    } else { copySelected(); showToast("Text copied to clipboard"); }
 }
 
 function isVerseBookmarked(vNum) {
@@ -1301,6 +1327,37 @@ function toggleBookmarks() {
 
 function clearSelection() {
     selectedVerses.clear(); document.querySelectorAll('.verse.selected').forEach(el => el.classList.remove('selected')); updateSelectionFabs();
+}
+
+function openStudyModal() {
+    document.getElementById('studyModal').showModal(); pushNavState('modal-study');
+}
+
+function openStudy(site) {
+    const data = getSelectedTextData();
+    const encRef = encodeURIComponent(data.ref);
+    let url = '';
+
+    switch(site) {
+        case 'blb':
+            url = `https://www.blueletterbible.org/search/search.cfm?Criteria=${encRef}&t=${state.translation.toUpperCase()}`;
+            break;
+        case 'gateway':
+            url = `https://www.biblegateway.com/passage/?search=${encRef}&version=${state.translation.toUpperCase()}`;
+            break;
+        case 'hub':
+            // Bible Hub doesn't handle range URLs well natively; target the exact first verse URL.
+            const hubBook = getCurrentBook().name.toLowerCase().replace(/ /g, '_');
+            url = `https://biblehub.com/${hubBook}/${currentChapter}-${data.firstV}.htm`;
+            break;
+        case 'youversion':
+            url = `https://www.bible.com/search/bible?q=${encRef}`;
+            break;
+    }
+    
+    window.open(url, '_blank');
+    document.getElementById('studyModal').close();
+    clearSelection();
 }
 
 /* =========================================
