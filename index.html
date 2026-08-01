@@ -89,7 +89,44 @@
         /* --- Calculator View (Centered) --- */
         #app-calculator-wrapper { width: 100vw; height: 100vh; height: 100dvh; display: flex; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; background-color: var(--calc-bg); z-index: 10; }
         #app-calculator { display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; width: 100%; max-width: 450px; height: 100%; max-height: 800px; margin: auto; position: relative; }
-        .calc-display { flex: 1; display: flex; align-items: flex-end; justify-content: flex-end; font-size: 5rem; font-weight: 300; color: var(--calc-text); padding-bottom: 20px; word-break: break-all; }
+        
+        .calc-display-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding-bottom: 20px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .calc-history {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--text-muted);
+            text-align: right;
+            width: 100%;
+            white-space: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+            margin-bottom: 5px;
+            min-height: 2rem;
+        }
+        .calc-history::-webkit-scrollbar { display: none; }
+
+        .calc-display { 
+            font-size: 5rem; 
+            font-weight: 300; 
+            color: var(--calc-text); 
+            white-space: nowrap;
+            text-align: right;
+            width: 100%;
+            overflow: auto;
+            scrollbar-width: thin;
+        }
+        .calc-display::-webkit-scrollbar { height: 4px; }
+        .calc-display::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
         
         .calc-help { position: absolute; top: 20px; left: 20px; color: var(--calc-btn-num); font-size: 1.5rem; cursor: pointer; }
         /* Real-time CSS-only hide toggle for calc help button based on the checkbox in the dialog */
@@ -204,17 +241,25 @@
         body.is-loading .view { opacity: 0.4 !important; pointer-events: none !important; filter: grayscale(100%) !important; }
         body.is-loading #view-home { opacity: 0.4; pointer-events: none; filter: grayscale(100%); }
 
-        /* Grids & Details */
+        /* Grids & Details (Smooth Grid Animation) */
         details { padding: 10px 20px; }
-        details[open] > div { animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        summary { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; cursor: pointer; color: var(--text-color); list-style: none; font-variant: all-small-caps; position: relative; padding-right: 30px; }
+        summary { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; cursor: pointer; color: var(--text-color); list-style: none; font-variant: all-small-caps; position: relative; padding-right: 30px; outline: none; }
         summary::-webkit-details-marker { display: none; }
         summary::after {
             content: ''; position: absolute; right: 5px; top: calc(50% - 6px); width: 10px; height: 10px;
             border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted);
-            transform: rotate(-45deg); transition: transform 0.2s ease, top 0.2s ease;
+            transform: rotate(-45deg); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        details[open] summary::after { transform: rotate(45deg); top: calc(50% - 8px); }
+        details.is-open summary::after { transform: rotate(45deg); top: calc(50% - 8px); }
+
+        .details-wrapper {
+            display: grid;
+            grid-template-rows: 0fr;
+            opacity: 0;
+            transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .details-wrapper > div { overflow: hidden; }
+        details.is-open .details-wrapper { grid-template-rows: 1fr; opacity: 1; }
 
         .book-grid, .chapter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
         .grid-item { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px 5px; text-align: center; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9em; transition: background 0.2s; }
@@ -321,7 +366,10 @@
     <div id="app-calculator-wrapper">
         <div id="app-calculator">
             <div class="calc-help material-symbols-rounded" id="calcHelpBtn">help</div>
-            <div class="calc-display" id="calcDisplay">0</div>
+            <div class="calc-display-container">
+                <div class="calc-history" id="calcHistory"></div>
+                <div class="calc-display" id="calcDisplay">0</div>
+            </div>
             <div class="calc-grid">
                 <button class="calc-btn btn-func" onclick="calcInput('C')">AC</button>
                 <button class="calc-btn btn-func" onclick="calcInput('±')">±</button>
@@ -519,29 +567,39 @@
 
         <!-- HOME VIEW (Book Picker) -->
         <div class="view active" id="view-home">
-            <details open id="ntDetails">
+            <details open id="ntDetails" class="is-open">
                 <summary id="ntSummary">New Testament</summary>
-                <div class="book-grid" id="ntGrid"></div>
+                <div class="details-wrapper">
+                    <div class="book-grid" id="ntGrid"></div>
+                </div>
             </details>
-            <details open id="otDetails">
+            <details open id="otDetails" class="is-open">
                 <summary id="otSummary">Old Testament</summary>
-                <div class="book-grid" id="otGrid"></div>
+                <div class="details-wrapper">
+                    <div class="book-grid" id="otGrid"></div>
+                </div>
             </details>
-            <details open>
+            <details open class="is-open">
                 <summary>Bookmarks</summary>
-                <div class="bookmark-list" id="bookmarksList"></div>
+                <div class="details-wrapper">
+                    <div class="bookmark-list" id="bookmarksList"></div>
+                </div>
             </details>
         </div>
 
         <!-- CHAPTERS VIEW -->
         <div class="view" id="view-chapters">
-            <details open>
+            <details open class="is-open">
                 <summary>Chapters</summary>
-                <div class="chapter-grid" id="chapterGrid"></div>
+                <div class="details-wrapper">
+                    <div class="chapter-grid" id="chapterGrid"></div>
+                </div>
             </details>
-            <details open id="bookBookmarksDetails">
+            <details open id="bookBookmarksDetails" class="is-open">
                 <summary>Bookmarks</summary>
-                <div class="bookmark-list" id="bookBookmarksList"></div>
+                <div class="details-wrapper">
+                    <div class="bookmark-list" id="bookBookmarksList"></div>
+                </div>
             </details>
         </div>
 
@@ -603,7 +661,6 @@ let state = {
     source: 'getbible'
 };
 
-const SECRET_CODE = ['7', '0', '×', '7'];
 const BIBLE_BOOKS = [
     "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
     "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
@@ -623,8 +680,8 @@ const OPENBIBLE_TRANS = [
     { value: 'ylt', label: 'YLT', full: 'Young\'s Literal Translation' }
 ];
 
-let inputBuffer = [];
 let displayValue = '0';
+let historyValue = '';
 let activeData = { OT: [], NT: [] }; 
 let currentBookIndex = -1;
 let currentIsNT = false;
@@ -664,6 +721,15 @@ function isIOSDevice() {
 
 function updateDynamicManifest() {
     const appName = state.panicEnabled ? "Calculator" : "Vult";
+    
+    // SVG Vector Icon Construction
+    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+        <rect width="512" height="512" rx="120" fill="#000000"/>
+        <text x="256" y="276" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, Arial, sans-serif" font-size="280" font-weight="bold" text-anchor="middle" dominant-baseline="middle">±</text>
+    </svg>`;
+    const svgDataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
+
+    // Raster PNG Fallback Construction
     const canvas = document.createElement('canvas');
     canvas.width = 512; canvas.height = 512;
     const ctx = canvas.getContext('2d');
@@ -684,9 +750,14 @@ function updateDynamicManifest() {
     
     const iconDataUri = canvas.toDataURL('image/png');
 
+    // Attach both SVG and PNG to manifest payload
     const manifestObj = {
         name: appName, short_name: appName, start_url: window.location.href, display: "standalone",
-        background_color: "#000000", theme_color: "#000000", icons: [{ src: iconDataUri, sizes: "512x512", type: "image/png" }]
+        background_color: "#000000", theme_color: "#000000", 
+        icons: [
+            { src: svgDataUri, sizes: "any", type: "image/svg+xml", purpose: "any" },
+            { src: iconDataUri, sizes: "512x512", type: "image/png" }
+        ]
     };
 
     const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
@@ -779,7 +850,7 @@ function init() {
     loadState();
     if (!state.source) { state.source = 'getbible'; saveState(); }
     
-    applySettings(); checkSpeechSupport(); setupPlayButton(); setupDialogDismiss();
+    applySettings(); checkSpeechSupport(); setupPlayButton(); setupDialogDismiss(); setupDetailsAnimation();
     setTimeout(updateDynamicManifest, 100); 
     
     history.replaceState({ view: 'base' }, '');
@@ -790,7 +861,6 @@ function init() {
         showCalculator();
     }
     
-    // Sync checkbox event to store the local setting for real-time CSS matching
     document.getElementById('showHelpCheck').addEventListener('change', (e) => {
         localStorage.setItem('vult_hideHelp', (!e.target.checked).toString());
     });
@@ -799,6 +869,30 @@ function init() {
 function setupDialogDismiss() {
     document.querySelectorAll('dialog').forEach(dialog => {
         dialog.addEventListener('click', function(e) { if (e.target === this) this.close(); });
+    });
+}
+
+function setupDetailsAnimation() {
+    document.querySelectorAll('details').forEach(el => {
+        const summary = el.querySelector('summary');
+        if (!summary) return;
+        
+        summary.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (el.classList.contains('is-open')) {
+                el.classList.remove('is-open');
+                setTimeout(() => {
+                    if (!el.classList.contains('is-open')) el.open = false;
+                }, 300);
+            } else {
+                el.open = true;
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        el.classList.add('is-open');
+                    });
+                });
+            }
+        });
     });
 }
 
@@ -846,13 +940,11 @@ function loadState() {
     const saved = localStorage.getItem('vult_state');
     if (saved) state = { ...state, ...JSON.parse(saved) };
     
-    // Check local pref for CSS-driven help button
     if (localStorage.getItem('vult_hideHelp') === 'true') {
         const helpChk = document.getElementById('showHelpCheck');
         if (helpChk) helpChk.checked = false;
     }
 
-    // Backwards Compatibility: Migrate single lastBook into recentLocations array
     if (state.lastBook && state.lastChap && (!state.recentLocations || state.recentLocations.length === 0)) {
         state.recentLocations = [{
             book: state.lastBook.name,
@@ -874,27 +966,89 @@ function saveState() { localStorage.setItem('vult_state', JSON.stringify(state))
 function showCalculator() {
     document.getElementById('app-calculator-wrapper').style.display = 'flex';
     document.getElementById('app-bible').style.display = 'none';
-    displayValue = '0'; updateDisplay();
+    displayValue = '0'; 
+    historyValue = '';
+    updateDisplay();
+}
+
+function formatDisplay(str) {
+    if (str === 'Error') return 'Error';
+    return str.replace(/\d+(\.\d*)?/g, (match) => {
+        let parts = match.split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return parts.join('.');
+    });
 }
 
 function calcInput(val) {
     if (!userInteracted) registerInteraction();
     
-    if (val === 'C') { displayValue = '0'; inputBuffer = []; } 
+    if (val === 'C') { 
+        displayValue = '0'; 
+        historyValue = '';
+    } 
     else if (val === '=') {
-        try { displayValue = String(eval(displayValue.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-'))); } 
-        catch { displayValue = 'Error'; }
+        if (displayValue === '77') {
+            showToast("Try again, using another source...");
+        }
+        
+        try {
+            historyValue = displayValue + ' =';
+            let evalExpr = displayValue.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+            let res = eval(evalExpr);
+            if (isNaN(res) || !isFinite(res)) {
+                displayValue = 'Error';
+            } else {
+                displayValue = String(res);
+            }
+        } catch { 
+            displayValue = 'Error'; 
+        }
     } else {
-        if (displayValue === '0' && !isNaN(val)) displayValue = val; else displayValue += val;
+        // Any modification to active input clears previous equation history view
+        if (historyValue !== '') {
+            historyValue = '';
+        }
+
+        if (displayValue === '0' || displayValue === 'Error') {
+            if (val === '.' || ['+', '−', '×', '÷', '%'].includes(val)) {
+                displayValue = '0' + val;
+            } else {
+                displayValue = val;
+            }
+        } else {
+            displayValue += val;
+        }
     }
+    
     updateDisplay();
 
-    inputBuffer.push(val);
-    if (inputBuffer.length > 4) inputBuffer.shift();
-    if (inputBuffer.join('') === SECRET_CODE.join('')) setTimeout(openBibleApp, 200);
+    if (displayValue === '70×7') {
+        setTimeout(openBibleApp, 200);
+    }
 }
 
-function updateDisplay() { document.getElementById('calcDisplay').innerText = displayValue; }
+function updateDisplay() { 
+    const el = document.getElementById('calcDisplay');
+    const histEl = document.getElementById('calcHistory');
+    
+    el.innerText = formatDisplay(displayValue);
+    histEl.innerText = formatDisplay(historyValue);
+    
+    // Auto-scroll history container to the right if equation is long
+    histEl.scrollLeft = histEl.scrollWidth;
+
+    // Reset to max font size first to measure accurately
+    el.style.fontSize = '5rem';
+    
+    // Dynamically shrink font size down to 2rem if it overflows container width
+    const container = el.parentElement;
+    let currentSize = 5.0;
+    while (el.scrollWidth > container.clientWidth && currentSize > 2.0) {
+        currentSize -= 0.2;
+        el.style.fontSize = currentSize + 'rem';
+    }
+}
 
 document.getElementById('calcHelpBtn').addEventListener('click', () => {
     document.getElementById('helpModal').showModal(); pushNavState('modal-help');
@@ -1038,7 +1192,7 @@ async function switchTranslation(newTrans) {
    BIBLE UI NAVIGATION
 ========================================= */
 async function openBibleApp() {
-    state.secretUnlocked = true; inputBuffer = [];
+    state.secretUnlocked = true;
     document.getElementById('app-calculator-wrapper').style.display = 'none';
     document.getElementById('app-bible').style.display = 'flex';
     document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none';
@@ -1183,15 +1337,12 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
     
     const book = testament[currentBookIndex]; if(!book) return renderHome();
 
-    // Manage Recent History State
     const locObj = { book: book.name, isNT: isNT, chap: chapterNum, trans: state.translation };
     
     if (isContinuousNav && state.recentLocations.length > 0) {
-        // Update the current session pill and remove any older duplicates of the new location further down the stack
         let tail = state.recentLocations.slice(1).filter(l => !(l.book === locObj.book && l.chap === locObj.chap));
         state.recentLocations = [locObj, ...tail];
     } else {
-        // Standard non-continuous entry (push a new pill)
         state.recentLocations = state.recentLocations.filter(l => !(l.book === locObj.book && l.chap === locObj.chap));
         state.recentLocations.unshift(locObj);
         if (state.recentLocations.length > 3) state.recentLocations.pop();
@@ -1346,7 +1497,6 @@ function openStudy(site) {
             url = `https://www.biblegateway.com/passage/?search=${encRef}&version=${state.translation.toUpperCase()}`;
             break;
         case 'hub':
-            // Bible Hub doesn't handle range URLs well natively; target the exact first verse URL.
             const hubBook = getCurrentBook().name.toLowerCase().replace(/ /g, '_');
             url = `https://biblehub.com/${hubBook}/${currentChapter}-${data.firstV}.htm`;
             break;
