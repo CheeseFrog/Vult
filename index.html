@@ -722,14 +722,7 @@ function isIOSDevice() {
 function updateDynamicManifest() {
     const appName = state.panicEnabled ? "Calculator" : "Vult";
     
-    // SVG Vector Icon Construction
-    const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-        <rect width="512" height="512" rx="120" fill="#000000"/>
-        <text x="256" y="276" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, Arial, sans-serif" font-size="280" font-weight="bold" text-anchor="middle" dominant-baseline="middle">±</text>
-    </svg>`;
-    const svgDataUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
-
-    // Raster PNG Fallback Construction
+    // Raster PNG Generation
     const canvas = document.createElement('canvas');
     canvas.width = 512; canvas.height = 512;
     const ctx = canvas.getContext('2d');
@@ -744,18 +737,17 @@ function updateDynamicManifest() {
     ctx.fill();
     
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 280px -apple-system, sans-serif';
+    ctx.font = 'bold 360px -apple-system, sans-serif';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('±', 256, 276); 
     
     const iconDataUri = canvas.toDataURL('image/png');
 
-    // Attach both SVG and PNG to manifest payload
+    // Generate manifest payload
     const manifestObj = {
         name: appName, short_name: appName, start_url: window.location.href, display: "standalone",
         background_color: "#000000", theme_color: "#000000", 
         icons: [
-            { src: svgDataUri, sizes: "any", type: "image/svg+xml", purpose: "any" },
             { src: iconDataUri, sizes: "512x512", type: "image/png" }
         ]
     };
@@ -1487,11 +1479,12 @@ function openStudyModal() {
 function openStudy(site) {
     const data = getSelectedTextData();
     const encRef = encodeURIComponent(data.ref);
+    const bookName = encodeURIComponent(getCurrentBook().name);
     let url = '';
 
     switch(site) {
         case 'blb':
-            url = `https://www.blueletterbible.org/search/search.cfm?Criteria=${encRef}&t=${state.translation.toUpperCase()}`;
+            url = `https://www.blueletterbible.org/Bible.cfm?b=${bookName}&c=${currentChapter}&t=${state.translation.toUpperCase()}`;
             break;
         case 'gateway':
             url = `https://www.biblegateway.com/passage/?search=${encRef}&version=${state.translation.toUpperCase()}`;
