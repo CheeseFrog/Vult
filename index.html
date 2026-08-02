@@ -62,127 +62,63 @@
             user-select: none;
         }
         
-        button, input, select, textarea {
-            font-family: inherit;
-            font-size: inherit;
-        }
+        button, input, select, textarea { font-family: inherit; font-size: inherit; }
         
         /* Base App Font is fixed to iOS standards, isolating the reader settings */
-        body { 
-            font-family: '-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', Arial, sans-serif; 
-            background-color: var(--calc-bg); 
-            overflow: hidden; 
-            font-size: 16px; 
-            color: var(--text-color); 
-        }
+        body { font-family: '-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', Arial, sans-serif; background-color: var(--calc-bg); overflow: hidden; font-size: 16px; color: var(--text-color); }
         
-        /* App Containers using dvh to prevent mobile chrome cutoff */
-        #app-calculator, #app-bible { width: 100vw; height: 100vh; height: 100dvh; position: absolute; top: 0; left: 0; }
-        #app-bible { background-color: var(--bg-color); display: none; flex-direction: column; z-index: 10; }
+        /* =========================================
+           SHARED CSS UTILITY & LAYOUT GROUPS
+        ========================================= */
+        #app-calculator, #app-calculator-wrapper, #app-bible { width: 100vw; height: 100vh; height: 100dvh; position: absolute; top: 0; left: 0; }
+        .calc-btn, .header-btn, .bb-btn, .ios-stepper button, .ios-stepper span, .fab { display: flex; align-items: center; justify-content: center; }
+        .calc-btn, .header-btn, .bb-btn, .ios-stepper button, .fab, .fab-resume { border: none; cursor: pointer; }
+        .ios-select-display, .grid-item, .bookmark-text, .resume-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .calc-btn, .fab, .ios-toggle::after { border-radius: 50%; }
+        .modal-btn:active, .grid-item:active, .bookmark-item:active { background: var(--border-color); }
+        .grid-item, .bookmark-item, dialog { background: var(--surface-color); }
+        .grid-item, .bookmark-item { border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: background 0.2s; }
+        .ios-select-overlay, .translation-select { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; z-index: 10; }
+        .calc-history::-webkit-scrollbar, .resume-scroll::-webkit-scrollbar, body:has(#showHelpCheck:not(:checked)) #calcHelpBtn, summary::-webkit-details-marker { display: none; }
 
         /* Unified Fade Up Animation */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
         /* --- Calculator View (Centered) --- */
-        #app-calculator-wrapper { width: 100vw; height: 100vh; height: 100dvh; display: flex; justify-content: center; align-items: center; position: absolute; top: 0; left: 0; background-color: var(--calc-bg); z-index: 10; }
+        #app-bible { background-color: var(--bg-color); display: none; flex-direction: column; z-index: 10; }
+        #app-calculator-wrapper { background-color: var(--calc-bg); display: flex; justify-content: center; align-items: center; z-index: 10; }
         #app-calculator { display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; width: 100%; max-width: 450px; height: 100%; max-height: 800px; margin: auto; position: relative; }
         
-        .calc-display-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: flex-end;
-            padding-bottom: 20px;
-            width: 100%;
-            overflow: hidden;
-        }
+        .calc-display-container { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; padding-bottom: 20px; width: 100%; overflow: hidden; }
 
-        .calc-history {
-            font-size: 1.5rem;
-            font-weight: 300;
-            color: var(--text-muted);
-            text-align: right;
-            width: 100%;
-            white-space: nowrap;
-            overflow-x: auto;
-            scrollbar-width: none;
-            margin-bottom: 5px;
-            min-height: 2rem;
-        }
-        .calc-history::-webkit-scrollbar { display: none; }
-
-        .calc-display { 
-            font-size: 5rem; 
-            font-weight: 300; 
-            color: var(--calc-text); 
-            white-space: nowrap;
-            text-align: right;
-            width: 100%;
-            overflow: auto;
-            scrollbar-width: thin;
-        }
+        .calc-history, .calc-display { white-space: nowrap; text-align: right; width: 100%; overflow-x: auto; }
+        .calc-history { font-size: 1.5rem; font-weight: 300; color: var(--text-muted); margin-bottom: 5px; min-height: 2rem; scrollbar-width: none; }
+        .calc-display { font-size: 5rem; font-weight: 300; color: var(--calc-text); scrollbar-width: thin; }
         .calc-display::-webkit-scrollbar { height: 4px; }
         .calc-display::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
         
         .calc-help { position: absolute; top: 20px; left: 20px; color: var(--calc-btn-num); font-size: 1.5rem; cursor: pointer; }
-        /* Real-time CSS-only hide toggle for calc help button based on the checkbox in the dialog */
-        body:has(#showHelpCheck:not(:checked)) #calcHelpBtn { display: none; }
-        
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-        .calc-btn { aspect-ratio: 1; border-radius: 50%; border: none; font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: filter 0.2s; }
+        
+        .calc-btn { aspect-ratio: 1; font-size: 2rem; transition: filter 0.2s; }
         .calc-btn:active { filter: brightness(1.4); }
         .calc-btn.zero { grid-column: span 2; aspect-ratio: auto; border-radius: 50px; justify-content: flex-start; padding-left: 30px; }
         .btn-num { background-color: var(--calc-btn-num); color: var(--calc-text); }
         .btn-op { background-color: var(--calc-btn-op); color: var(--calc-text); font-size: 2.5rem; }
         .btn-func { background-color: var(--calc-btn-func); color: var(--calc-btn-func-text); }
 
-        /* Native HTML5 Dialog Overlays */
-        dialog { 
-            margin: auto; 
-            padding: 25px; 
-            border-radius: 12px; 
-            border: none;
-            background: var(--surface-color); 
-            color: var(--text-color); 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3); 
-            max-width: 90%; 
-            width: 400px; 
-            max-height: 90vh;
-            max-height: 90dvh;
-            overflow-y: auto; 
-        }
-        dialog::backdrop {
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(2px);
-        }
-        dialog[open] {
-            animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+        /* Dialog Overlays */
+        dialog { margin: auto; padding: 25px; border-radius: 12px; border: none; color: var(--text-color); box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 90%; width: 400px; max-height: 90vh; max-height: 90dvh; overflow-y: auto; }
+        dialog::backdrop { background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+        dialog[open] { animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         dialog:focus-visible { outline: none; }
         dialog h3 { margin-bottom: 15px; font-weight: 600; text-align: center; }
         .modal-btn { margin-top: 20px; width: 100%; padding: 12px; background: var(--surface-color-active); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 8px; font-size: 1em; cursor: pointer; font-weight: 600; transition: background 0.2s; }
-        .modal-btn:active { background: var(--border-color); }
         .modal-btn.primary { background: var(--primary-color); color: white; border: none; }
 
-        /* iOS Settings List Styling */
+        /* iOS Settings Lists */
         .ios-list { background: var(--bg-color); border-radius: 10px; overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border-color); }
-        
-        .ios-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 8px 16px; 
-            min-height: 52px; 
-            border-bottom: 1px solid var(--border-color); 
-            background: var(--surface-color); 
-            cursor: pointer; 
-            transition: background 0.2s; 
-            position: relative; 
-        }
+        .ios-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; min-height: 52px; border-bottom: 1px solid var(--border-color); background: var(--surface-color); cursor: pointer; transition: background 0.2s; position: relative; }
         .ios-row:active { background: var(--surface-color-active); }
         .ios-row:last-child { border-bottom: none; }
         .ios-row-label { font-size: 1rem; color: var(--text-color); flex: 1; }
@@ -190,94 +126,68 @@
         
         /* Select Dropdowns */
         .ios-select-row { position: relative; overflow: hidden; }
-        .ios-select-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; appearance: none; -webkit-appearance: none; }
-        .ios-select-display { color: var(--text-muted); font-size: 1rem; pointer-events: none; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; text-align: right; }
+        .ios-select-display { color: var(--text-muted); font-size: 1rem; pointer-events: none; max-width: 150px; display: inline-block; text-align: right; }
         .ios-select-wrapper { display: flex; align-items: center; color: var(--text-muted); }
         .ios-select-wrapper .material-symbols-rounded { font-size: 20px; margin-left: 4px; pointer-events: none; }
         
-        /* Plus/Minus Steppers */
+        /* Steppers */
         .ios-stepper { display: flex; align-items: stretch; height: 2em; background: var(--bg-color); border-radius: 0.5em; overflow: hidden; border: 1px solid var(--border-color); z-index: 20; position: relative; font-size: 1rem; }
-        .ios-stepper button { background: var(--surface-color); border: none; color: var(--primary-color); font-size: 1.2em; width: 1.875em; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .ios-stepper button { background: var(--surface-color); color: var(--primary-color); font-size: 1.2em; width: 1.875em; }
         .ios-stepper button:active { background: var(--surface-color-active); }
-        .ios-stepper span { width: 2.63em; font-size: 0.95em; display: flex; justify-content: center; align-items: center; color: var(--text-color); pointer-events: none; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); }
+        .ios-stepper span { width: 2.63em; font-size: 0.95em; color: var(--text-color); pointer-events: none; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color); }
 
-        /* iOS Toggle Switch */
+        /* Toggle Switch */
         .ios-toggle { position: relative; width: 3em; height: 1.75em; font-size: 1rem; appearance: none; -webkit-appearance: none; background: var(--border-color); outline: none; border-radius: 1em; cursor: pointer; transition: background 0.3s; margin: 0; pointer-events: none; }
-        .ios-toggle::after { content: ''; position: absolute; top: 0.125em; left: 0.125em; width: 1.5em; height: 1.5em; background: #fff; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.3s; }
-        .ios-toggle:checked { background: #34c759; /* iOS Green */ }
+        .ios-toggle::after { content: ''; position: absolute; top: 0.125em; left: 0.125em; width: 1.5em; height: 1.5em; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.3s; }
+        .ios-toggle:checked { background: #34c759; }
         .ios-toggle:checked::after { transform: translateX(1.25em); }
 
         /* --- Bible App Views --- */
         .view { display: none; flex: 1; overflow-y: auto; overflow-x: hidden; flex-direction: column; padding-bottom: 180px; transition: filter 0.3s, opacity 0.3s; }
-        .view.active { 
-            display: flex; 
-            animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+        .view.active { display: flex; animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
-        /* Header */
         header { display: flex; align-items: center; padding: 15px 20px; background-color: var(--header-bg); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 5; }
         .header-left, .header-right { flex: 1; display: flex; align-items: center; min-width: 0; }
         .header-right { justify-content: flex-end; }
-        .header-btn { background: none; border: none; color: var(--primary-color); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+        .header-btn { background: none; color: var(--primary-color); font-size: 1.1rem; }
         header h1 { flex: 2; font-size: 1.2rem; font-weight: 600; text-align: center; margin: 0; }
         
         .translation-select-wrapper { position: relative; display: flex; align-items: center; color: var(--primary-color); font-weight: 600; font-size: 1.1rem; }
-        .translation-select { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; }
 
-        /* Loading Bar & State */
-        .loading-bar {
-            position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px;
-            background-color: var(--border-color); display: none; overflow: hidden; z-index: 10;
-        }
-        .loading-bar::before {
-            content: ''; position: absolute; top: 0; left: -50%; width: 50%; height: 100%;
-            background-color: var(--primary-color); animation: loadingBarAnim 1.5s infinite ease-in-out;
-        }
-        @keyframes loadingBarAnim {
-            0% { left: -50%; width: 50%; } 50% { left: 25%; width: 80%; } 100% { left: 100%; width: 50%; }
-        }
+        /* Loading Bar */
+        .loading-bar { position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background-color: var(--border-color); display: none; overflow: hidden; z-index: 10; }
+        .loading-bar::before { content: ''; position: absolute; top: 0; left: -50%; width: 50%; height: 100%; background-color: var(--primary-color); animation: loadingBarAnim 1.5s infinite ease-in-out; }
+        @keyframes loadingBarAnim { 0% { left: -50%; width: 50%; } 50% { left: 25%; width: 80%; } 100% { left: 100%; width: 50%; } }
         
         body.is-loading .loading-bar { display: block; }
         body.is-loading .view { opacity: 0.4 !important; pointer-events: none !important; filter: grayscale(100%) !important; }
         body.is-loading #view-home { opacity: 0.4; pointer-events: none; filter: grayscale(100%); }
 
-        /* Grids & Details (Smooth Grid Animation) */
+        /* Grids & Details */
         details { padding: 10px 20px; }
         summary { font-size: 1.2rem; font-weight: 600; margin-bottom: 10px; cursor: pointer; color: var(--text-color); list-style: none; font-variant: all-small-caps; position: relative; padding-right: 30px; outline: none; }
-        summary::-webkit-details-marker { display: none; }
-        summary::after {
-            content: ''; position: absolute; right: 5px; top: calc(50% - 6px); width: 10px; height: 10px;
-            border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted);
-            transform: rotate(-45deg); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+        summary::after { content: ''; position: absolute; right: 5px; top: calc(50% - 6px); width: 10px; height: 10px; border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted); transform: rotate(-45deg); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), top 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         details.is-open summary::after { transform: rotate(45deg); top: calc(50% - 8px); }
 
-        .details-wrapper {
-            display: grid;
-            grid-template-rows: 0fr;
-            opacity: 0;
-            transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+        .details-wrapper { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         .details-wrapper > div { overflow: hidden; }
         details.is-open .details-wrapper { grid-template-rows: 1fr; opacity: 1; }
 
         .book-grid, .chapter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; }
-        .grid-item { background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px 5px; text-align: center; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9em; transition: background 0.2s; }
-        .grid-item:active { background: var(--border-color); }
+        .grid-item { padding: 15px 5px; text-align: center; font-size: 0.9em; }
         
-        /* Bookmarks List */
+        /* Bookmarks */
         .bookmark-list { display: flex; flex-direction: column; gap: 10px; }
-        .bookmark-item { background: var(--surface-color); border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; cursor: pointer; transition: background 0.2s; }
-        .bookmark-item:active { background: var(--border-color); }
+        .bookmark-item { padding: 15px; }
         .bookmark-ref { font-weight: 600; color: var(--primary-color); margin-bottom: 5px; }
-        .bookmark-text { font-size: 0.85em; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .bookmark-text { font-size: 0.85em; color: var(--text-muted); }
 
         /* Reader View */
         #view-reader { padding: 20px; padding-bottom: 180px; line-height: 1.6; font-family: var(--reader-font-family); font-size: var(--reader-font-size); }
         .verse { margin-bottom: 10px; cursor: pointer; border-radius: 4px; padding: 5px; transition: background 0.2s, filter 0.2s; }
         .verse-num { font-weight: 600; color: var(--primary-color); font-size: 0.75em; vertical-align: super; margin-inline-end: 4px; }
         
-        /* Verse State Colors */
+        /* Verse States */
         .verse.selected { background-color: var(--highlight); }
         .verse.bookmarked { background-color: var(--bookmarked-bg); }
         .verse.playing { box-shadow: -4px 0 0 0 var(--primary-color); background-color: var(--playing-bg); }
@@ -289,74 +199,43 @@
         .verse.playing.bookmarked { background-color: color-mix(in srgb, var(--playing-bg) 50%, var(--bookmarked-bg) 50%); }
         .verse.playing.selected.bookmarked { background-color: color-mix(in srgb, var(--playing-bg) 33%, color-mix(in srgb, var(--highlight) 50%, var(--bookmarked-bg) 50%) 67%); }
         
-        /* Action FABs */
-        .fab { position: fixed; border: none; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 50; transition: transform 0.2s, bottom 0.3s; }
+        @keyframes verseFlash { 0% { filter: brightness(1.5); } 100% { filter: brightness(1); } }
+        .verse.flash { animation: verseFlash 0.2s ease-out; }
+
+        /* FABs */
+        .fab { position: fixed; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 50; transition: transform 0.2s, bottom 0.3s; }
         .fab:active { transform: scale(0.9); }
-        
-        /* Panic FAB */
-        .fab-panic { background: #ff3b30; color: white; width: 56px; height: 56px; border-radius: 50%; bottom: 20px; right: 20px; }
+        .fab-panic { background: #ff3b30; color: white; width: 56px; height: 56px; bottom: 20px; right: 20px; }
         .panic-symbol { font-size: 28px; line-height: 1; font-weight: 400; font-family: '-apple-system', sans-serif; }
         
-        /* Scrolling Resume Pills Area (Bottom Left) */
-        .resume-wrapper {
-            position: fixed; bottom: 10px; left: 0; right: 85px; 
-            height: 76px; z-index: 40; display: none; transition: bottom 0.3s;
-            mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%);
-            -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%);
-        }
-        .resume-scroll {
-            display: flex; gap: 10px; height: 100%; overflow-x: auto; align-items: center;
-            scrollbar-width: none; -ms-overflow-style: none; padding-left: 20px; padding-right: 40px;
-        }
-        .resume-scroll::-webkit-scrollbar { display: none; }
-        
-        /* When panic is disabled, extend to edge and remove mask */
-        body:not(.panic-active) .resume-wrapper {
-            right: 0;
-            mask-image: none;
-            -webkit-mask-image: none;
-        }
-        body:not(.panic-active) .resume-scroll {
-            padding-right: 20px;
-        }
+        .resume-wrapper { position: fixed; bottom: 10px; left: 0; right: 85px; height: 76px; z-index: 40; transition: bottom 0.3s; mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); }
+        .resume-scroll { display: flex; gap: 10px; height: 100%; overflow-x: auto; align-items: center; scrollbar-width: none; padding-left: 20px; padding-right: 40px; }
+        body:not(.panic-active) .resume-wrapper { right: 0; mask-image: none; -webkit-mask-image: none; }
+        body:not(.panic-active) .resume-scroll { padding-right: 20px; }
 
-        .fab-resume {
-            background: var(--surface-color); color: var(--primary-color); height: 48px;
-            border-radius: 24px; display: flex; align-items: center; gap: 8px; padding: 0 20px;
-            font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border: none; cursor: pointer; flex-shrink: 0; max-width: calc(100vw - 40px);
-            transition: transform 0.2s, background 0.2s;
-        }
+        .fab-resume { background: var(--surface-color); color: var(--primary-color); height: 48px; border-radius: 24px; display: flex; align-items: center; gap: 8px; padding: 0 20px; font-weight: 600; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); flex-shrink: 0; max-width: calc(100vw - 40px); transition: transform 0.2s, background 0.2s; }
         .fab-resume:active { transform: scale(0.95); background: var(--surface-color-active); }
-        .fab-resume .resume-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Selection FABs (Bottom Left - Reader view) */
         .selection-fabs { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: row; gap: 15px; transform: scale(0); transition: transform 0.2s, bottom 0.3s; z-index: 40; pointer-events: none; }
         .selection-fabs.visible { transform: scale(1); pointer-events: auto; }
-        .fab-action { background: var(--surface-color); color: var(--primary-color); width: 48px; height: 48px; border-radius: 50%; position: relative; }
+        .fab-action { background: var(--surface-color); color: var(--primary-color); width: 48px; height: 48px; position: relative; }
 
         /* Bottom Bar */
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--header-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; transform: translateY(100%); transition: transform 0.3s; z-index: 40; }
         .bottom-bar.visible { transform: translateY(0); }
-        .bb-btn { background: none; border: none; color: var(--text-color); padding: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .bb-btn { background: none; color: var(--text-color); padding: 10px; }
         .bb-btn .material-symbols-rounded { font-size: 32px; }
         .bb-btn.play-btn { color: var(--primary-color); }
         .bb-btn.play-btn .material-symbols-rounded { font-size: 48px; }
 
-        /* Shift UP Left FABs, Scrolling Wrapper, and Right Panic FAB when Bottom Bar is visible */
-        #app-bible:has(.bottom-bar.visible) .fab-panic,
-        #app-bible:has(.bottom-bar.visible) .selection-fabs { bottom: 90px; }
-        
+        /* Shift up components when bottom bar appears */
+        #app-bible:has(.bottom-bar.visible) .fab-panic, #app-bible:has(.bottom-bar.visible) .selection-fabs { bottom: 90px; }
         #app-bible:has(.bottom-bar.visible) .resume-wrapper { bottom: 80px; }
 
-        /* Toast Notification */
-        .toast {
-            position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px);
-            background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 24px;
-            z-index: 9999; transition: transform 0.3s ease, opacity 0.3s ease; pointer-events: none; opacity: 0;
-            font-weight: 500; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap;
-        }
-        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        /* Toast (Pure CSS Animation Triggered via Class Replacement) */
+        .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 24px; z-index: 9999; font-weight: 500; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; opacity: 0; pointer-events: none; }
+        @keyframes toastAnim { 0% { transform: translateX(-50%) translateY(-100px); opacity: 0; pointer-events: none; } 15%, 85% { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; } 100% { transform: translateX(-50%) translateY(-100px); opacity: 0; pointer-events: none; } }
+        .toast.animate { animation: toastAnim 2s ease forwards; }
 
     </style>
 </head>
@@ -413,7 +292,7 @@
                 </div>
             </label>
         </div>
-        <button class="modal-btn primary" onclick="document.getElementById('helpModal').close()">Close</button>
+        <button class="modal-btn primary" onclick="closeModal('helpModal')">Close</button>
     </dialog>
 
     <!-- EXTERNAL STUDY MODAL -->
@@ -438,7 +317,7 @@
                 <span class="material-symbols-rounded" style="color:var(--text-muted)">open_in_new</span>
             </div>
         </div>
-        <button class="modal-btn" onclick="document.getElementById('studyModal').close()">Cancel</button>
+        <button class="modal-btn" onclick="closeModal('studyModal')">Cancel</button>
     </dialog>
 
     <!-- SETTINGS MODAL -->
@@ -538,7 +417,7 @@
                 </div>
             </label>
         </div>
-        <button class="modal-btn primary" onclick="closeSettings()">Done</button>
+        <button class="modal-btn primary" onclick="closeModal('settingsModal')">Done</button>
     </dialog>
 
     <!-- BIBLE APP (VULT) -->
@@ -652,6 +531,33 @@
 
 <script>
 /* =========================================
+   DOM HELPERS & ABSTRACTIONS
+========================================= */
+const $ = (id) => document.getElementById(id);
+
+const openModal = (id, navState) => { $(id).showModal(); pushNavState(navState); };
+const closeModal = (id) => $(id).close();
+
+const syncSelectDisplay = (selectDom, displayDom) => {
+    if (selectDom.selectedIndex >= 0) displayDom.innerText = selectDom.options[selectDom.selectedIndex].text;
+};
+
+// Reusable pointer-event logic for buttons and verses that need both tap and long-press differentiation
+const setupLongPress = (element, onLongPress, onClick) => {
+    let pressTimer = null;
+    let isLongPress = false;
+    element.addEventListener('pointerdown', (e) => {
+        isLongPress = false;
+        pressTimer = setTimeout(() => { isLongPress = true; onLongPress(e); }, 600);
+    });
+    const cancelTimer = () => clearTimeout(pressTimer);
+    element.addEventListener('pointerup', (e) => { cancelTimer(); if (!isLongPress && onClick) onClick(e); });
+    element.addEventListener('pointerleave', cancelTimer);
+    element.addEventListener('pointercancel', cancelTimer);
+    element.addEventListener('contextmenu', (e) => { e.preventDefault(); cancelTimer(); if(onLongPress) onLongPress(e); });
+};
+
+/* =========================================
    STATE MANAGEMENT & CONSTANTS
 ========================================= */
 let state = {
@@ -753,7 +659,7 @@ function updateDynamicManifest() {
     };
 
     const blob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
-    const manifestLink = document.getElementById('dynamicManifest');
+    const manifestLink = $('dynamicManifest');
     if (manifestLink) manifestLink.setAttribute('href', URL.createObjectURL(blob));
 }
 
@@ -765,14 +671,14 @@ window.addEventListener('beforeinstallprompt', (e) => {
 window.addEventListener('appinstalled', () => { deferredPrompt = null; });
 
 async function handleInstallClick() {
-    closeSettings();
+    closeModal('settingsModal');
     if (deferredPrompt) {
         updateDynamicManifest();
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
             deferredPrompt = null;
-            document.getElementById('installRowContainer').style.display = 'none';
+            $('installRowContainer').style.display = 'none';
         }
     } else {
         showToast("App can be installed from your browser menu.");
@@ -780,18 +686,26 @@ async function handleInstallClick() {
 }
 
 function showToast(msg) {
-    let toast = document.getElementById('toastMsg');
+    let toast = $('toastMsg');
     toast.innerText = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2000);
+    toast.classList.remove('animate');
+    void toast.offsetWidth; // Trigger reflow to restart pure CSS animation loop
+    toast.classList.add('animate');
 }
 
 /* =========================================
-   HELPERS & ROUTING
+   ROUTING & CORE HELPERS
 ========================================= */
-function getCurrentBook() {
-    return currentBookIndex >= 0 ? (currentIsNT ? activeData.NT : activeData.OT)[currentBookIndex] : null;
-}
+const getCurrentBook = () => currentBookIndex >= 0 ? (currentIsNT ? activeData.NT : activeData.OT)[currentBookIndex] : null;
+
+const checkBookExists = (bookName) => {
+    let isNT = activeData.NT.some(b => b.name === bookName);
+    return { exists: isNT || activeData.OT.some(b => b.name === bookName), isNT };
+};
+
+const clearPlayingVerseStyles = () => {
+    document.querySelectorAll('.verse.playing').forEach(el => el.classList.remove('playing', 'paused'));
+};
 
 const registerInteraction = () => {
     if (userInteracted) return;
@@ -815,11 +729,11 @@ window.onpopstate = function (event) {
     
     const dialogs = ['settingsModal', 'helpModal', 'studyModal'];
     for(let id of dialogs) {
-        let el = document.getElementById(id);
+        let el = $(id);
         if (el && el.open) { el.close(); isPopState = false; return; }
     }
 
-    const navBackBtn = document.getElementById('navBack');
+    const navBackBtn = $('navBack');
     if (navBackBtn && navBackBtn.style.display !== 'none' && typeof navBackBtn.onclick === 'function') {
         navBackBtn.onclick();
     } else if (state.secretUnlocked) {
@@ -853,9 +767,10 @@ function init() {
         showCalculator();
     }
     
-    document.getElementById('showHelpCheck').addEventListener('change', (e) => {
+    $('showHelpCheck').addEventListener('change', (e) => {
         localStorage.setItem('vult_hideHelp', (!e.target.checked).toString());
     });
+    $('calcHelpBtn').addEventListener('click', () => openModal('helpModal', 'modal-help'));
 }
 
 function setupDialogDismiss() {
@@ -879,9 +794,7 @@ function setupDetailsAnimation() {
             } else {
                 el.open = true;
                 requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        el.classList.add('is-open');
-                    });
+                    requestAnimationFrame(() => { el.classList.add('is-open'); });
                 });
             }
         });
@@ -890,28 +803,19 @@ function setupDetailsAnimation() {
 
 function checkSpeechSupport() {
     if (!synth) {
-        document.getElementById('playBtn').style.display = 'none';
-        document.getElementById('speechSettingsGroup').style.display = 'none';
+        $('playBtn').style.display = 'none';
+        $('speechSettingsGroup').style.display = 'none';
     } else { populateVoices(); }
 }
 
 function setupPlayButton() {
-    const playBtnEl = document.getElementById('playBtn');
-    let playPressTimer; let isLongPress = false;
-
-    playBtnEl.addEventListener('pointerdown', (e) => {
-        isLongPress = false;
-        playPressTimer = setTimeout(() => {
-            isLongPress = true; cancelSpeech(); playingIndex = -1; 
+    setupLongPress($('playBtn'), 
+        () => {
+            cancelSpeech(); playingIndex = -1; 
             if ('vibrate' in navigator) navigator.vibrate(50); 
-        }, 600); 
-    });
-    playBtnEl.addEventListener('pointerup', (e) => {
-        clearTimeout(playPressTimer); if (!isLongPress) togglePlay();
-    });
-    playBtnEl.addEventListener('pointerleave', () => clearTimeout(playPressTimer));
-    playBtnEl.addEventListener('pointercancel', () => clearTimeout(playPressTimer));
-    playBtnEl.addEventListener('contextmenu', e => e.preventDefault());
+        },
+        () => togglePlay()
+    );
 }
 
 async function requestWakeLock() {
@@ -933,7 +837,7 @@ function loadState() {
     if (saved) state = { ...state, ...JSON.parse(saved) };
     
     if (localStorage.getItem('vult_hideHelp') === 'true') {
-        const helpChk = document.getElementById('showHelpCheck');
+        const helpChk = $('showHelpCheck');
         if (helpChk) helpChk.checked = false;
     }
 
@@ -956,8 +860,8 @@ function saveState() { localStorage.setItem('vult_state', JSON.stringify(state))
    CALCULATOR LOGIC
 ========================================= */
 function showCalculator() {
-    document.getElementById('app-calculator-wrapper').style.display = 'flex';
-    document.getElementById('app-bible').style.display = 'none';
+    $('app-calculator-wrapper').style.display = 'flex';
+    $('app-bible').style.display = 'none';
     displayValue = '0'; 
     historyValue = '';
     updateDisplay();
@@ -983,7 +887,6 @@ function calcInput(val) {
         if (displayValue === '77') {
             showToast("Try again, using another source...");
         }
-        
         try {
             historyValue = displayValue + ' =';
             let evalExpr = displayValue.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
@@ -997,43 +900,27 @@ function calcInput(val) {
             displayValue = 'Error'; 
         }
     } else {
-        // Any modification to active input clears previous equation history view
-        if (historyValue !== '') {
-            historyValue = '';
-        }
-
+        if (historyValue !== '') { historyValue = ''; }
         if (displayValue === '0' || displayValue === 'Error') {
-            if (val === '.' || ['+', '−', '×', '÷', '%'].includes(val)) {
-                displayValue = '0' + val;
-            } else {
-                displayValue = val;
-            }
+            if (val === '.' || ['+', '−', '×', '÷', '%'].includes(val)) { displayValue = '0' + val; } else { displayValue = val; }
         } else {
             displayValue += val;
         }
     }
     
     updateDisplay();
-
-    if (displayValue === '70×7') {
-        setTimeout(openBibleApp, 200);
-    }
+    if (displayValue === '70×7') { setTimeout(openBibleApp, 200); }
 }
 
 function updateDisplay() { 
-    const el = document.getElementById('calcDisplay');
-    const histEl = document.getElementById('calcHistory');
+    const el = $('calcDisplay');
+    const histEl = $('calcHistory');
     
     el.innerText = formatDisplay(displayValue);
     histEl.innerText = formatDisplay(historyValue);
-    
-    // Auto-scroll history container to the right if equation is long
     histEl.scrollLeft = histEl.scrollWidth;
 
-    // Reset to max font size first to measure accurately
     el.style.fontSize = '5rem';
-    
-    // Dynamically shrink font size down to 2rem if it overflows container width
     const container = el.parentElement;
     let currentSize = 5.0;
     while (el.scrollWidth > container.clientWidth && currentSize > 2.0) {
@@ -1042,15 +929,11 @@ function updateDisplay() {
     }
 }
 
-document.getElementById('calcHelpBtn').addEventListener('click', () => {
-    document.getElementById('helpModal').showModal(); pushNavState('modal-help');
-});
-
 /* =========================================
    BIBLE TRANSLATIONS & DATA LOGIC
 ========================================= */
 async function populateTranslations() {
-    const select = document.getElementById('transSelect');
+    const select = $('transSelect');
     select.innerHTML = '';
     
     if (state.source === 'getbible') {
@@ -1089,10 +972,10 @@ async function populateTranslations() {
 }
 
 function updateTransDisplay() {
-    const select = document.getElementById('transSelect');
+    const select = $('transSelect');
     if (select.selectedIndex >= 0) {
         let acr = select.options[select.selectedIndex].dataset.acronym || select.value.toUpperCase();
-        document.getElementById('transSelectDisplay').innerText = acr;
+        $('transSelectDisplay').innerText = acr;
     }
 }
 
@@ -1169,13 +1052,13 @@ async function switchTranslation(newTrans) {
     if (state.translation === newTrans) return true;
     const prevTrans = state.translation;
     state.translation = newTrans;
-    document.getElementById('transSelect').value = newTrans;
+    $('transSelect').value = newTrans;
     updateTransDisplay();
     activeData = { OT: [], NT: [] };
     
     if (await loadBibleData()) { saveState(); return true; } 
     else {
-        state.translation = prevTrans; document.getElementById('transSelect').value = prevTrans; updateTransDisplay();
+        state.translation = prevTrans; $('transSelect').value = prevTrans; updateTransDisplay();
         activeData = { OT: [], NT: [] }; await loadBibleData(); return false;
     }
 }
@@ -1185,13 +1068,13 @@ async function switchTranslation(newTrans) {
 ========================================= */
 async function openBibleApp() {
     state.secretUnlocked = true;
-    document.getElementById('app-calculator-wrapper').style.display = 'none';
-    document.getElementById('app-bible').style.display = 'flex';
-    document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none';
+    $('app-calculator-wrapper').style.display = 'none';
+    $('app-bible').style.display = 'flex';
+    $('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none';
     
     document.body.classList.add('is-loading');
     await populateTranslations();
-    document.getElementById('transSelect').value = state.translation; updateTransDisplay();
+    $('transSelect').value = state.translation; updateTransDisplay();
 
     const success = await loadBibleData();
     document.body.classList.remove('is-loading');
@@ -1199,8 +1082,7 @@ async function openBibleApp() {
     if (success && state.recentLocations && state.recentLocations.length > 0) {
         const primaryLoc = state.recentLocations[0];
         if (primaryLoc.trans !== state.translation) { await switchTranslation(primaryLoc.trans); }
-        let isNT = activeData.NT.some(b => b.name === primaryLoc.book);
-        let exists = isNT || activeData.OT.some(b => b.name === primaryLoc.book);
+        let { exists, isNT } = checkBookExists(primaryLoc.book);
         if(exists) { pushNavState('home'); pushNavState('chapters'); openChapter(primaryLoc.book, isNT, primaryLoc.chap, false); }
         else { renderHome(); }
     } else { renderHome(); }
@@ -1212,7 +1094,8 @@ function createBookmarkElement(bm) {
     div.innerHTML = `<div class="bookmark-ref">${bm.ref} (${bm.trans.toUpperCase()})</div><div class="bookmark-text">${bm.text}</div>`;
     div.onclick = async () => {
         if (await switchTranslation(bm.trans)) {
-            let isNT = activeData.NT.some(b => b.name === bm.book); openChapter(bm.book, isNT, bm.chapter, true, bm.verse);
+            let { isNT } = checkBookExists(bm.book);
+            openChapter(bm.book, isNT, bm.chapter, true, bm.verse);
         }
     };
     return div;
@@ -1222,15 +1105,14 @@ async function resumeLocation(index) {
     if (!state.recentLocations || !state.recentLocations[index]) return;
     const loc = state.recentLocations[index];
     if (await switchTranslation(loc.trans)) {
-        let isNT = activeData.NT.some(b => b.name === loc.book);
-        let exists = isNT || activeData.OT.some(b => b.name === loc.book);
+        let { exists, isNT } = checkBookExists(loc.book);
         if(exists) openChapter(loc.book, isNT, loc.chap, false);
     }
 }
 
 function updateResumeFabVisibility() {
-    const wrapper = document.getElementById('resumeWrapper');
-    const scroll = document.getElementById('resumeScroll');
+    const wrapper = $('resumeWrapper');
+    const scroll = $('resumeScroll');
     
     if (state.recentLocations && state.recentLocations.length > 0) {
         wrapper.style.display = 'block';
@@ -1258,18 +1140,17 @@ function updateResumeFabVisibility() {
 }
 
 function renderHome() {
-    hideAllViews(); document.getElementById('view-home').classList.add('active');
-    document.getElementById('headerTitle').innerText = 'Vult';
-    
-    document.getElementById('navBack').style.display = 'none';
-    document.getElementById('transSelectWrapper').style.display = 'flex';
-    document.getElementById('bottomBar').classList.remove('visible');
+    hideAllViews(); $('view-home').classList.add('active');
+    $('headerTitle').innerText = 'Vult';
+    $('navBack').style.display = 'none';
+    $('transSelectWrapper').style.display = 'flex';
+    $('bottomBar').classList.remove('visible');
     
     updateResumeFabVisibility(); updateSelectionFabs();
     
-    const ntGrid = document.getElementById('ntGrid'), otGrid = document.getElementById('otGrid');
-    const ntDetails = document.getElementById('ntDetails'), otDetails = document.getElementById('otDetails');
-    const ntSummary = document.getElementById('ntSummary'), otSummary = document.getElementById('otSummary');
+    const ntGrid = $('ntGrid'), otGrid = $('otGrid');
+    const ntDetails = $('ntDetails'), otDetails = $('otDetails');
+    const ntSummary = $('ntSummary'), otSummary = $('otSummary');
 
     ntGrid.innerHTML = ''; otGrid.innerHTML = '';
     
@@ -1290,29 +1171,29 @@ function renderHome() {
 }
 
 function renderBookmarksList() {
-    const list = document.getElementById('bookmarksList'); list.innerHTML = '';
+    const list = $('bookmarksList'); list.innerHTML = '';
     if (state.bookmarks.length === 0) { list.innerHTML = '<p style="color:var(--text-muted); font-size:0.9em; padding: 0 10px;">No bookmarks yet.</p>'; return; }
     state.bookmarks.forEach(bm => list.appendChild(createBookmarkElement(bm)));
 }
 
 function openBook(index, isNT) {
-    hideAllViews(); document.getElementById('view-chapters').classList.add('active');
+    hideAllViews(); $('view-chapters').classList.add('active');
     
-    document.getElementById('navBack').style.display = 'flex'; document.getElementById('navBack').onclick = renderHome;
-    document.getElementById('transSelectWrapper').style.display = 'none';
+    $('navBack').style.display = 'flex'; $('navBack').onclick = renderHome;
+    $('transSelectWrapper').style.display = 'none';
     updateResumeFabVisibility();
     
     const book = isNT ? activeData.NT[index] : activeData.OT[index];
-    document.getElementById('headerTitle').innerText = book.name;
+    $('headerTitle').innerText = book.name;
 
-    const grid = document.getElementById('chapterGrid'); grid.innerHTML = '';
+    const grid = $('chapterGrid'); grid.innerHTML = '';
     for(let i=1; i<book.chapters.length; i++) {
         if(!book.chapters[i] || book.chapters[i].length === 0) continue;
         let div = document.createElement('div'); div.className = 'grid-item'; div.innerText = i;
         div.onclick = () => openChapter(book.name, isNT, i, false); grid.appendChild(div);
     }
     
-    const bkmDetails = document.getElementById('bookBookmarksDetails'), bkmList = document.getElementById('bookBookmarksList');
+    const bkmDetails = $('bookBookmarksDetails'), bkmList = $('bookBookmarksList');
     bkmList.innerHTML = '';
     const bkBookmarks = state.bookmarks.filter(bm => bm.book === book.name);
     bkmDetails.style.display = 'block';
@@ -1343,15 +1224,15 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
     
     hideAllViews();
     
-    document.getElementById('navBack').style.display = 'flex';
-    document.getElementById('navBack').onclick = () => openBook(currentBookIndex, currentIsNT);
-    document.getElementById('transSelectWrapper').style.display = 'none';
-    document.getElementById('headerTitle').innerText = `${book.name} ${chapterNum}`;
+    $('navBack').style.display = 'flex';
+    $('navBack').onclick = () => openBook(currentBookIndex, currentIsNT);
+    $('transSelectWrapper').style.display = 'none';
+    $('headerTitle').innerText = `${book.name} ${chapterNum}`;
     
-    const readerView = document.getElementById('view-reader'); readerView.classList.add('active');
-    document.getElementById('bottomBar').classList.add('visible'); updateSelectionFabs();
+    const readerView = $('view-reader'); readerView.classList.add('active');
+    $('bottomBar').classList.add('visible'); updateSelectionFabs();
 
-    const container = document.getElementById('readerContent'); container.innerHTML = '';
+    const container = $('readerContent'); container.innerHTML = '';
     selectedVerses.clear(); updateSelectionFabs();
 
     const verses = book.chapters[chapterNum];
@@ -1364,25 +1245,21 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
         p.innerHTML = `<span class="verse-num">${vNum}</span>${text}`;
         
         if (isVerseBookmarked(vNum)) p.classList.add('bookmarked');
-        p.onclick = () => toggleVerseSelection(p, vNum);
         
-        let versePressTimer = null;
-        p.addEventListener('pointerdown', (e) => {
-            versePressTimer = setTimeout(() => {
-                copySingleVerse(book.name, chapterNum, vNum, text); if ('vibrate' in navigator) navigator.vibrate(40);
-                p.style.filter = 'brightness(1.5)'; setTimeout(() => p.style.filter = '', 200);
-            }, 600);
-        });
-        p.addEventListener('pointerup', () => clearTimeout(versePressTimer));
-        p.addEventListener('pointerleave', () => clearTimeout(versePressTimer));
-        p.addEventListener('pointercancel', () => clearTimeout(versePressTimer));
-        p.oncontextmenu = (e) => { e.preventDefault(); copySingleVerse(book.name, chapterNum, vNum, text); };
+        setupLongPress(p, 
+            () => {
+                copySingleVerse(book.name, chapterNum, vNum, text); 
+                if ('vibrate' in navigator) navigator.vibrate(40);
+                p.classList.remove('flash'); void p.offsetWidth; p.classList.add('flash');
+            },
+            () => toggleVerseSelection(p, vNum)
+        );
         
         container.appendChild(p);
     });
 
     if (scrollToVerse && targetVerseNum) {
-        setTimeout(() => { let targetEl = document.getElementById(`v${targetVerseNum}`); if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+        setTimeout(() => { let targetEl = $(`v${targetVerseNum}`); if (targetEl) targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
     } else { readerView.scrollTop = 0; }
     
     pushNavState('reader');
@@ -1390,8 +1267,8 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
 
 function hideAllViews() {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('bottomBar').classList.remove('visible');
-    document.getElementById('resumeWrapper').style.display = 'none';
+    $('bottomBar').classList.remove('visible');
+    $('resumeWrapper').style.display = 'none';
     updateSelectionFabs();
 }
 
@@ -1405,11 +1282,11 @@ function toggleVerseSelection(element, vNum) {
 }
 
 function updateSelectionFabs() {
-    const fabs = document.getElementById('selectionFabs');
-    if (selectedVerses.size > 0 && document.getElementById('view-reader').classList.contains('active')) {
+    const fabs = $('selectionFabs');
+    if (selectedVerses.size > 0 && $('view-reader').classList.contains('active')) {
         fabs.classList.add('visible');
         let allBookmarked = Array.from(selectedVerses).every(v => isVerseBookmarked(v));
-        document.getElementById('bookmarkFabIcon').innerText = allBookmarked ? 'bookmark_remove' : 'bookmark';
+        $('bookmarkFabIcon').innerText = allBookmarked ? 'bookmark_remove' : 'bookmark';
     } else { fabs.classList.remove('visible'); }
 }
 
@@ -1451,7 +1328,7 @@ function toggleBookmarks() {
     if (allBookmarked) {
         selectedVerses.forEach(vNum => {
             state.bookmarks = state.bookmarks.filter(b => !(b.trans === state.translation && b.book === bookName && b.chapter === currentChapter && b.verse === vNum));
-            const el = document.getElementById(`v${vNum}`); if(el) el.classList.remove('bookmarked');
+            const el = $(`v${vNum}`); if(el) el.classList.remove('bookmarked');
         });
     } else {
         const book = getCurrentBook();
@@ -1461,7 +1338,7 @@ function toggleBookmarks() {
                     ref: `${bookName} ${currentChapter}:${vNum}`, book: bookName, chapter: currentChapter, verse: vNum,
                     text: book.chapters[currentChapter][vNum].substring(0, 50) + '...', trans: state.translation
                 });
-                const el = document.getElementById(`v${vNum}`); if(el) el.classList.add('bookmarked');
+                const el = $(`v${vNum}`); if(el) el.classList.add('bookmarked');
             }
         });
     }
@@ -1472,34 +1349,22 @@ function clearSelection() {
     selectedVerses.clear(); document.querySelectorAll('.verse.selected').forEach(el => el.classList.remove('selected')); updateSelectionFabs();
 }
 
-function openStudyModal() {
-    document.getElementById('studyModal').showModal(); pushNavState('modal-study');
-}
+function openStudyModal() { openModal('studyModal', 'modal-study'); }
 
 function openStudy(site) {
     const data = getSelectedTextData();
     const encRef = encodeURIComponent(data.ref);
-    const bookName = encodeURIComponent(getCurrentBook().name);
-    let url = '';
-
-    switch(site) {
-        case 'blb':
-            url = `https://www.blueletterbible.org/Bible.cfm?b=${bookName}&c=${currentChapter}&t=${state.translation.toUpperCase()}`;
-            break;
-        case 'gateway':
-            url = `https://www.biblegateway.com/passage/?search=${encRef}&version=${state.translation.toUpperCase()}`;
-            break;
-        case 'hub':
-            const hubBook = getCurrentBook().name.toLowerCase().replace(/ /g, '_');
-            url = `https://biblehub.com/${hubBook}/${currentChapter}-${data.firstV}.htm`;
-            break;
-        case 'youversion':
-            url = `https://www.bible.com/search/bible?q=${encRef}`;
-            break;
-    }
+    const trans = state.translation.toUpperCase();
     
-    window.open(url, '_blank');
-    document.getElementById('studyModal').close();
+    const studyUrls = {
+        blb: `https://www.blueletterbible.org/Bible.cfm?b=${encodeURIComponent(getCurrentBook().name)}&c=${currentChapter}&t=${trans}`,
+        gateway: `https://www.biblegateway.com/passage/?search=${encRef}&version=${trans}`,
+        hub: `https://biblehub.com/${getCurrentBook().name.toLowerCase().replace(/ /g, '_')}/${currentChapter}-${data.firstV}.htm`,
+        youversion: `https://www.bible.com/search/bible?q=${encRef}`
+    };
+    
+    window.open(studyUrls[site], '_blank');
+    closeModal('studyModal');
     clearSelection();
 }
 
@@ -1509,9 +1374,7 @@ function openStudy(site) {
 function togglePlay() {
     if (!synth) return;
     if (isPlaying) {
-        isPlaying = false; if (synth) synth.cancel(); releaseWakeLock();
-        document.getElementById('playIcon').innerText = 'play_circle';
-        document.querySelectorAll('.verse.playing').forEach(el => el.classList.add('paused'));
+        cancelSpeech();
     } else {
         let startIdx = 1; const playingEl = document.querySelector('.verse.playing');
         if (playingEl) { let vMatch = playingEl.id.match(/^v(\d+)$/); if (vMatch) startIdx = parseInt(vMatch[1]); } 
@@ -1536,19 +1399,19 @@ function playVerse(vNum) {
     if (state.voiceURI) { let voice = voices.find(v => v.voiceURI === state.voiceURI); if (voice) currentUtterance.voice = voice; }
     currentUtterance.rate = state.rate; currentUtterance.onend = () => { if (isPlaying) playVerse(vNum + 1); };
 
-    isPlaying = true; requestWakeLock(); document.getElementById('playIcon').innerText = 'pause_circle'; synth.speak(currentUtterance);
+    isPlaying = true; requestWakeLock(); $('playIcon').innerText = 'pause_circle'; synth.speak(currentUtterance);
 }
 
 function highlightPlayingVerse() {
-    document.querySelectorAll('.verse.playing').forEach(el => { el.classList.remove('playing'); el.classList.remove('paused'); });
-    let el = document.getElementById(`v${playingIndex}`);
+    clearPlayingVerseStyles();
+    let el = $(`v${playingIndex}`);
     if (el) { el.classList.add('playing'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
 }
 
 function cancelSpeech() {
     isPlaying = false; currentUtterance = null; releaseWakeLock(); if (synth) synth.cancel();
-    document.getElementById('playIcon').innerText = 'play_circle';
-    document.querySelectorAll('.verse.playing').forEach(el => { el.classList.remove('playing'); el.classList.remove('paused'); });
+    $('playIcon').innerText = 'play_circle';
+    clearPlayingVerseStyles();
 }
 
 function prevChapter() {
@@ -1575,74 +1438,62 @@ function nextChapter(autoPlay = false) {
 /* =========================================
    SETTINGS & THEMING
 ========================================= */
+const bindSetting = (id, stateKey, displayId = null, extraAction = null) => {
+    $(id).addEventListener('change', (e) => {
+        let val = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        state[stateKey] = val;
+        if (displayId) syncSelectDisplay(e.target, $(displayId));
+        if (extraAction) extraAction(val);
+        saveState();
+    });
+};
+
+bindSetting('setTheme', 'theme', 'themeDisplay', applySettings);
+bindSetting('setFontFam', 'fontFamily', 'fontFamDisplay', applySettings);
+bindSetting('setVoice', 'voiceURI', 'voiceDisplay');
+bindSetting('setPanic', 'panicEnabled', null, (val) => {
+    $('panicBtn').style.display = val ? 'flex' : 'none'; 
+    document.body.classList.toggle('panic-active', val);
+    updateDynamicManifest();
+});
+bindSetting('setSource', 'source', 'sourceDisplay', async () => {
+    if (state.secretUnlocked) {
+        document.body.classList.add('is-loading'); await populateTranslations(); $('transSelect').value = state.translation; updateTransDisplay();
+        activeData = { OT: [], NT: [] }; const success = await loadBibleData(); if(success) renderHome();
+    }
+});
+$('transSelect').addEventListener('change', async (e) => { updateTransDisplay(); await switchTranslation(e.target.value); renderHome(); });
+
 function openSettings() {
-    document.getElementById('setTheme').value = state.theme;
-    document.getElementById('themeDisplay').innerText = document.getElementById('setTheme').options[document.getElementById('setTheme').selectedIndex].text;
+    const hydrate = (id, stateVal, dispId) => {
+        const el = $(id);
+        if (el.type === 'checkbox') el.checked = stateVal; else el.value = stateVal;
+        if (dispId) syncSelectDisplay(el, $(dispId));
+    };
     
-    document.getElementById('setFontFam').value = state.fontFamily;
-    document.getElementById('fontFamDisplay').innerText = document.getElementById('setFontFam').options[document.getElementById('setFontFam').selectedIndex].text;
+    hydrate('setTheme', state.theme, 'themeDisplay');
+    hydrate('setFontFam', state.fontFamily, 'fontFamDisplay');
+    hydrate('setSource', state.source, 'sourceDisplay');
+    $('setPanic').checked = state.panicEnabled;
     
-    document.getElementById('fontSizeDisplay').innerText = state.fontSize;
-    document.getElementById('rateDisplay').innerText = state.rate.toFixed(1);
-    document.getElementById('setPanic').checked = state.panicEnabled;
-    
-    document.getElementById('setSource').value = state.source;
-    document.getElementById('sourceDisplay').innerText = document.getElementById('setSource').options[document.getElementById('setSource').selectedIndex].text;
+    $('fontSizeDisplay').innerText = state.fontSize;
+    $('rateDisplay').innerText = state.rate.toFixed(1);
 
     if (synth) populateVoices();
     
-    if (isRunningStandalone() || isIOSDevice()) {
-        document.getElementById('installRowContainer').style.display = 'none';
-    } else {
-        document.getElementById('installRowContainer').style.display = 'flex';
-    }
-    
-    document.getElementById('settingsModal').showModal(); pushNavState('modal-settings');
+    $('installRowContainer').style.display = (isRunningStandalone() || isIOSDevice()) ? 'none' : 'flex';
+    openModal('settingsModal', 'modal-settings');
 }
-
-function closeSettings() { document.getElementById('settingsModal').close(); }
 
 function changeFontSize(delta) {
     let newVal = state.fontSize + delta;
-    if (newVal >= 12 && newVal <= 32) { state.fontSize = newVal; document.getElementById('fontSizeDisplay').innerText = state.fontSize; applySettings(); saveState(); }
+    if (newVal >= 12 && newVal <= 32) { state.fontSize = newVal; $('fontSizeDisplay').innerText = state.fontSize; applySettings(); saveState(); }
 }
 
 function changeSpeechRate(delta) {
     let newVal = state.rate + delta;
-    if (newVal >= 0.5 && newVal <= 2.0) { state.rate = newVal; document.getElementById('rateDisplay').innerText = state.rate.toFixed(1); saveState(); }
+    if (newVal >= 0.5 && newVal <= 2.0) { state.rate = newVal; $('rateDisplay').innerText = state.rate.toFixed(1); saveState(); }
 }
-
-document.getElementById('setTheme').addEventListener('change', (e) => { 
-    state.theme = e.target.value; document.getElementById('themeDisplay').innerText = e.target.options[e.target.selectedIndex].text; applySettings(); saveState(); 
-});
-
-document.getElementById('setFontFam').addEventListener('change', (e) => { 
-    state.fontFamily = e.target.value; document.getElementById('fontFamDisplay').innerText = e.target.options[e.target.selectedIndex].text; applySettings(); saveState(); 
-});
-
-document.getElementById('setVoice').addEventListener('change', (e) => { 
-    state.voiceURI = e.target.value; document.getElementById('voiceDisplay').innerText = e.target.options[e.target.selectedIndex].text; saveState(); 
-});
-
-document.getElementById('setPanic').addEventListener('change', (e) => { 
-    state.panicEnabled = e.target.checked; 
-    saveState(); 
-    document.getElementById('panicBtn').style.display = state.panicEnabled ? 'flex' : 'none'; 
-    document.body.classList.toggle('panic-active', state.panicEnabled);
-    updateDynamicManifest();
-});
-
-document.getElementById('setSource').addEventListener('change', async (e) => { 
-    state.source = e.target.value; document.getElementById('sourceDisplay').innerText = e.target.options[e.target.selectedIndex].text; saveState(); 
-    if (state.secretUnlocked) {
-        document.body.classList.add('is-loading'); await populateTranslations(); document.getElementById('transSelect').value = state.translation; updateTransDisplay();
-        activeData = { OT: [], NT: [] }; const success = await loadBibleData(); if(success) renderHome();
-    }
-});
-
-document.getElementById('transSelect').addEventListener('change', async (e) => {
-    updateTransDisplay(); await switchTranslation(e.target.value); renderHome();
-});
 
 function applySettings() {
     document.documentElement.setAttribute('data-theme', state.theme);
@@ -1654,7 +1505,7 @@ function applySettings() {
 function populateVoices() {
     if (!synth) return;
     voices = synth.getVoices();
-    const select = document.getElementById('setVoice'); select.innerHTML = '';
+    const select = $('setVoice'); select.innerHTML = '';
     
     let defaultOpt = document.createElement('option'); defaultOpt.value = ''; defaultOpt.innerText = 'System Default'; select.appendChild(defaultOpt);
 
@@ -1663,7 +1514,7 @@ function populateVoices() {
     });
     
     if (state.voiceURI && select.querySelector(`option[value="${state.voiceURI}"]`)) select.value = state.voiceURI; else select.value = '';
-    if (select.selectedIndex >= 0) document.getElementById('voiceDisplay').innerText = select.options[select.selectedIndex].text;
+    syncSelectDisplay(select, $('voiceDisplay'));
 }
 
 if (synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = populateVoices;
