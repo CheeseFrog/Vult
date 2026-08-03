@@ -225,8 +225,8 @@
         .selection-fabs.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
         .fab-action { background: var(--surface-color); color: var(--primary-color); position: relative; }
 
-        /* Resume Wrapper Layout */
-        .resume-wrapper { position: fixed; bottom: 10px; left: 0; right: 85px; height: 76px; z-index: 40; transition: bottom 0.3s; mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); }
+        /* Resume Wrapper Layout (Increased height to prevent shadow clipping while offsetting bottom to maintain visual position) */
+        .resume-wrapper { position: fixed; bottom: 0; left: 0; right: 85px; height: 96px; z-index: 40; transition: bottom 0.3s; mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); }
         .resume-scroll { display: flex; gap: 10px; height: 100%; overflow-x: auto; align-items: center; scrollbar-width: none; padding-left: 20px; padding-right: 40px; }
         body:not(.panic-active) .resume-wrapper { right: 0; mask-image: none; -webkit-mask-image: none; }
         body:not(.panic-active) .resume-scroll { padding-right: 20px; }
@@ -241,7 +241,7 @@
 
         /* Shift up components when bottom bar appears */
         #app-bible:has(.bottom-bar.visible) .fab-panic, #app-bible:has(.bottom-bar.visible) .selection-fabs { bottom: 90px; }
-        #app-bible:has(.bottom-bar.visible) .resume-wrapper { bottom: 80px; }
+        #app-bible:has(.bottom-bar.visible) .resume-wrapper { bottom: 70px; }
 
         /* Toast (Pure CSS Animation Triggered via Class Replacement) */
         .toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-100px); background: rgba(0,0,0,0.8); color: white; padding: 12px 24px; border-radius: 24px; z-index: 9999; font-weight: 500; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3); white-space: nowrap; opacity: 0; pointer-events: none; }
@@ -560,19 +560,21 @@ const syncSelectDisplay = (selectDom, displayDom) => {
     if (selectDom.selectedIndex >= 0) displayDom.innerText = selectDom.options[selectDom.selectedIndex].text;
 };
 
-// Reusable pointer-event logic for buttons and verses that need both tap and long-press differentiation
+// Reusable native event logic for buttons and verses that need both tap and long-press differentiation
 const setupLongPress = (element, onLongPress, onClick) => {
-    let pressTimer = null;
-    let isLongPress = false;
-    element.addEventListener('pointerdown', (e) => {
-        isLongPress = false;
-        pressTimer = setTimeout(() => { isLongPress = true; onLongPress(e); }, 600);
-    });
-    const cancelTimer = () => clearTimeout(pressTimer);
-    element.addEventListener('pointerup', (e) => { cancelTimer(); if (!isLongPress && onClick) onClick(e); });
-    element.addEventListener('pointerleave', cancelTimer);
-    element.addEventListener('pointercancel', cancelTimer);
-    element.addEventListener('contextmenu', (e) => { e.preventDefault(); cancelTimer(); if(onLongPress) onLongPress(e); });
+    if (onLongPress) {
+        element.addEventListener('contextmenu', (e) => {
+            e.preventDefault();  // Stop native context menu from appearing
+            e.stopPropagation(); // Stop event bubbling
+            onLongPress(e);
+        });
+    }
+
+    if (onClick) {
+        element.addEventListener('click', (e) => {
+            onClick(e);
+        });
+    }
 };
 
 /* =========================================
