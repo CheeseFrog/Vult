@@ -187,7 +187,7 @@
 
         /* Reader View */
         #view-reader { padding: 20px; padding-bottom: 180px; line-height: 1.6; font-family: var(--reader-font-family); font-size: var(--reader-font-size); }
-        .verse { margin-bottom: 10px; cursor: pointer; border-radius: 4px; padding: 5px; transition: background 0.2s, filter 0.2s; }
+        .verse { margin-bottom: 10px; cursor: pointer; border-radius: 4px; padding: 5px; transition: background 0.2s, filter 0.2s, box-shadow 0.2s; }
         .verse-num { font-weight: 600; color: var(--primary-color); font-size: 0.75em; vertical-align: super; margin-inline-end: 4px; }
         
         /* Verse States */
@@ -202,7 +202,7 @@
         .verse.playing.bookmarked { background-color: color-mix(in srgb, var(--playing-bg) 50%, var(--bookmarked-bg) 50%); }
         .verse.playing.selected.bookmarked { background-color: color-mix(in srgb, var(--playing-bg) 33%, color-mix(in srgb, var(--highlight) 50%, var(--bookmarked-bg) 50%) 67%); }
         
-        /* Revised Verse Flash Animation using Opacity */
+        /* Verse Flash Animation using Opacity */
         @keyframes verseFlash {
             0% { opacity: 1; }
             40% { opacity: 0.3; }
@@ -615,6 +615,7 @@ let selectedVerses = new Set();
 let synth = window.speechSynthesis || null;
 let voices = [];
 let isPlaying = false;
+let isPaused = false;
 let currentUtterance = null;
 let wakeLock = null;
 let activeView = 'home'; 
@@ -1405,7 +1406,11 @@ function openStudy(site) {
 function togglePlay() {
     if (!synth) return;
     if (isPlaying) {
-        cancelSpeech();
+        if (isPaused) {
+            resumeSpeech();
+        } else {
+            pauseSpeech();
+        }
     } else {
         let startIdx = 1; const playingEl = document.querySelector('.verse.playing');
         if (playingEl) { let vMatch = playingEl.id.match(/^v(\d+)$/); if (vMatch) startIdx = parseInt(vMatch[1]); } 
@@ -1417,7 +1422,7 @@ function togglePlay() {
 
 function playVerse(vNum) {
     if (!synth) return;
-    isPlaying = false; if (synth) synth.cancel();
+    isPlaying = false; isPaused = false; if (synth) synth.cancel();
     
     const verses = getCurrentBook().chapters[currentChapter];
     while(!verses[vNum] && vNum < verses.length) vNum++;
@@ -1428,19 +1433,41 @@ function playVerse(vNum) {
 
     currentUtterance = new SpeechSynthesisUtterance(verses[vNum]);
     if (state.voiceURI) { let voice = voices.find(v => v.voiceURI === state.voiceURI); if (voice) currentUtterance.voice = voice; }
-    currentUtterance.rate = state.rate; currentUtterance.onend = () => { if (isPlaying) playVerse(vNum + 1); };
+    currentUtterance.rate = state.rate; 
+    
+    // onend triggers the next verse, but ONLY if we are actively playing and not paused.
+    currentUtterance.onend = () => { if (isPlaying && !isPaused) playVerse(vNum + 1); };
 
-    isPlaying = true; requestWakeLock(); $('playIcon').innerText = 'pause_circle'; synth.speak(currentUtterance);
+    isPlaying = true; isPaused = false; requestWakeLock(); $('playIcon').innerText = 'pause_circle'; synth.speak(currentUtterance);
+}
+
+function pauseSpeech() {
+    if (!synth || !isPlaying || isPaused) return;
+    isPaused = true; 
+    synth.cancel(); // Completely cancel to avoid browser hanging bugs
+    releaseWakeLock();
+    $('playIcon').innerText = 'play_circle';
+    highlightPlayingVerse();
+}
+
+function resumeSpeech() {
+    if (!synth || !isPlaying || !isPaused) return;
+    // Bypassing browser resume() entirely, restart the verse from scratch
+    playVerse(playingIndex); 
 }
 
 function highlightPlayingVerse() {
     clearPlayingVerseStyles();
     let el = $(`v${playingIndex}`);
-    if (el) { el.classList.add('playing'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    if (el) {
+        el.classList.add('playing');
+        if (isPaused) el.classList.add('paused');
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 }
 
 function cancelSpeech() {
-    isPlaying = false; currentUtterance = null; releaseWakeLock(); if (synth) synth.cancel();
+    isPlaying = false; isPaused = false; currentUtterance = null; releaseWakeLock(); if (synth) synth.cancel();
     $('playIcon').innerText = 'play_circle';
     clearPlayingVerseStyles();
 }
