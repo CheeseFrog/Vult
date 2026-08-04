@@ -2,14 +2,16 @@
 <html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+    <!-- Sets the base URL for all relative URLs in the document -->
+    <base href="src/">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calculator</title>
     <!-- Dynamic Web Manifest Link -->
     <link rel="manifest" id="dynamicManifest">
     <!-- Modern Material Symbols Rounded import -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
-    <!-- Shake.js Support (Loads local first from ./src/, falls back to CDN) -->
-    <script src="./src/shake.js" onerror="this.onerror=null; this.src='https://cdn.jsdelivr.net/gh/alexgibson/shake.js/shake.js';"></script>
+    <!-- Shake.js Support (Loads local first based on <base>, falls back to CDN) -->
+    <script src="shake.js" onerror="this.onerror=null; this.src='https://cdn.jsdelivr.net/gh/alexgibson/shake.js/shake.js';"></script>
     <style>
         :root {
             /* iOS Calculator Colors */
@@ -1113,7 +1115,7 @@ async function loadBibleData() {
         } else {
             let text = "";
             try { text = await (await fetch(`https://openbible.com/textfiles/${state.translation}.txt`)).text(); } 
-            catch { text = await (await fetch(`./src/${state.translation}.txt`)).text(); }
+            catch { text = await (await fetch(`${state.translation}.txt`)).text(); }
             
             for (let line of text.split(/\r?\n/)) {
                 if (!line.trim()) continue;
