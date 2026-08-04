@@ -8,8 +8,8 @@
     <link rel="manifest" id="dynamicManifest">
     <!-- Modern Material Symbols Rounded import -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
-    <!-- Shake.js Support -->
-    <script src="https://cdn.jsdelivr.net/gh/alexgibson/shake.js/shake.js"></script>
+    <!-- Shake.js Support (Loads local first, falls back to CDN) -->
+    <script src="shake.js" onerror="this.onerror=null; this.src='https://cdn.jsdelivr.net/gh/alexgibson/shake.js/shake.js';"></script>
     <style>
         :root {
             /* iOS Calculator Colors */
@@ -81,7 +81,7 @@
         .grid-item, .bookmark-item, dialog { background: var(--surface-color); }
         .grid-item, .bookmark-item { border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: background 0.2s; }
         .ios-select-overlay, .translation-select { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; z-index: 10; }
-        .calc-history::-webkit-scrollbar, .resume-scroll::-webkit-scrollbar, body:has(#showHelpCheck:not(:checked)) #calcHelpBtn, summary::-webkit-details-marker { display: none; }
+        .resume-scroll::-webkit-scrollbar, body:has(#showHelpCheck:not(:checked)) #calcHelpBtn, summary::-webkit-details-marker { display: none; }
 
         /* Unified Fade Up Animation */
         @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -93,16 +93,24 @@
         
         .calc-display-container { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; padding-bottom: 20px; width: 100%; overflow: hidden; }
 
-        .calc-history, .calc-display { white-space: nowrap; text-align: right; width: 100%; overflow-x: auto; }
-        .calc-history { font-size: 1.5rem; font-weight: 300; color: var(--text-muted); margin-bottom: 5px; min-height: 2rem; scrollbar-width: none; }
-        .calc-display { font-size: 5rem; font-weight: 300; color: var(--calc-text); scrollbar-width: thin; }
-        .calc-display::-webkit-scrollbar { height: 4px; }
-        .calc-display::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+        /* Shared Calculator Display Styling */
+        .calc-displays {
+            white-space: nowrap;
+            text-align: right;
+            width: 100%;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+        .calc-displays::-webkit-scrollbar { height: 4px; display: block; }
+        .calc-displays::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 2px; }
+
+        #calcHistory { font-size: 1.5rem; font-weight: 300; color: var(--text-muted); margin-bottom: 5px; min-height: 2rem; }
+        #calcDisplay { font-size: 5rem; font-weight: 300; color: var(--calc-text); }
         
         .calc-help { position: absolute; top: 20px; left: 20px; color: var(--calc-btn-num); font-size: 1.5rem; cursor: pointer; }
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
         
-        .calc-btn { aspect-ratio: 1; font-size: 2rem; transition: filter 0.2s; }
+        .calc-btn { aspect-ratio: 1; font-size: 2rem; transition: filter 0.2s; touch-action: manipulation; }
         .calc-btn:active { filter: brightness(1.4); }
         .calc-btn.zero { grid-column: span 2; aspect-ratio: auto; border-radius: 50px; justify-content: flex-start; padding-left: 30px; }
         .btn-num { background-color: var(--calc-btn-num); color: var(--calc-text); }
@@ -225,19 +233,56 @@
         .selection-fabs.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
         .fab-action { background: var(--surface-color); color: var(--primary-color); position: relative; }
 
-        /* Resume Wrapper Layout (Increased height to prevent shadow clipping while offsetting bottom to maintain visual position) */
+        /* Resume Wrapper Layout */
         .resume-wrapper { position: fixed; bottom: 0; left: 0; right: 85px; height: 96px; z-index: 40; transition: bottom 0.3s; mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); }
         .resume-scroll { display: flex; gap: 10px; height: 100%; overflow-x: auto; align-items: center; scrollbar-width: none; padding-left: 20px; padding-right: 40px; }
         body:not(.panic-active) .resume-wrapper { right: 0; mask-image: none; -webkit-mask-image: none; }
         body:not(.panic-active) .resume-scroll { padding-right: 20px; }
+        
+        /* Orientation shorthand logic for Resume FABs (Shorthand in Portrait, Longhand in Landscape) */
+        .text-long { display: none; }
+        .text-short { display: inline; }
+        @media (orientation: landscape) {
+            .text-long { display: inline; }
+            .text-short { display: none; }
+        }
 
         /* Bottom Bar */
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--header-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; transform: translateY(100%); transition: transform 0.3s; z-index: 40; }
         .bottom-bar.visible { transform: translateY(0); }
         .bb-btn { background: none; color: var(--text-color); padding: 10px; }
         .bb-btn .material-symbols-rounded { font-size: 32px; }
-        .bb-btn.play-btn { color: var(--primary-color); }
-        .bb-btn.play-btn .material-symbols-rounded { font-size: 48px; }
+        
+        /* Radial Progress Ring around Play Button */
+        .bb-btn.play-btn {
+            --progress-angle: 0deg;
+            --progress-color: var(--primary-color);
+            position: relative;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            padding: 0;
+            color: var(--primary-color);
+            background: conic-gradient(var(--progress-color) var(--progress-angle), var(--border-color) var(--progress-angle));
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        .bb-btn.play-btn::before {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            background: var(--header-bg);
+            z-index: 1;
+        }
+        .bb-btn.play-btn .material-symbols-rounded {
+            position: relative;
+            z-index: 2;
+            font-size: 34px;
+        }
+        .bb-btn.play-btn.is-paused {
+            --progress-color: var(--text-muted);
+            color: var(--text-muted);
+        }
 
         /* Shift up components when bottom bar appears */
         #app-bible:has(.bottom-bar.visible) .fab-panic, #app-bible:has(.bottom-bar.visible) .selection-fabs { bottom: 90px; }
@@ -257,8 +302,8 @@
         <div id="app-calculator">
             <div class="calc-help material-symbols-rounded" id="calcHelpBtn">help</div>
             <div class="calc-display-container">
-                <div class="calc-history" id="calcHistory"></div>
-                <div class="calc-display" id="calcDisplay">0</div>
+                <div class="calc-displays" id="calcHistory"></div>
+                <div class="calc-displays" id="calcDisplay">0</div>
             </div>
             <div class="calc-grid">
                 <button class="calc-btn btn-func" onclick="calcInput('C')">AC</button>
@@ -339,11 +384,12 @@
                 <div class="ios-row-label">Theme</div>
                 <div class="ios-row-control">
                     <div class="ios-select-wrapper">
-                        <span id="themeDisplay" class="ios-select-display">Dark</span>
+                        <span id="themeDisplay" class="ios-select-display">System</span>
                         <span class="material-symbols-rounded">chevron_right</span>
                     </div>
                 </div>
                 <select id="setTheme" class="ios-select-overlay">
+                    <option value="system">System</option>
                     <option value="dark">Dark</option>
                     <option value="light">Light</option>
                 </select>
@@ -534,7 +580,7 @@
                 <span class="material-symbols-rounded">skip_previous</span>
             </button>
             <button class="bb-btn play-btn" id="playBtn">
-                <span class="material-symbols-rounded" id="playIcon">play_circle</span>
+                <span class="material-symbols-rounded" id="playIcon">play_arrow</span>
             </button>
             <button class="bb-btn" onclick="nextChapter()">
                 <span class="material-symbols-rounded">skip_next</span>
@@ -581,7 +627,7 @@ const setupLongPress = (element, onLongPress, onClick) => {
    STATE MANAGEMENT & CONSTANTS
 ========================================= */
 let state = {
-    theme: 'dark', fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', Arial, sans-serif", fontSize: 18,
+    theme: 'system', fontFamily: "'-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', Arial, sans-serif", fontSize: 18,
     panicEnabled: true, shakeToPanicEnabled: false, voiceURI: '', rate: 1, translation: 'kjv',
     bookmarks: [], recentLocations: [], secretUnlocked: false,
     source: 'getbible'
@@ -591,6 +637,12 @@ const BIBLE_BOOKS = [
     "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy", "Joshua", "Judges", "Ruth", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings", "1 Chronicles", "2 Chronicles", "Ezra", "Nehemiah", "Esther", "Job", "Psalms", "Proverbs", "Ecclesiastes", "Song of Solomon", "Isaiah", "Jeremiah", "Lamentations", "Ezekiel", "Daniel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
     "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
 ];
+
+const BOOK_SHORTHANDS = {
+    "Genesis": "Gen", "Exodus": "Exo", "Leviticus": "Lev", "Numbers": "Num", "Deuteronomy": "Deu", "Joshua": "Jos", "Judges": "Jdg", "Ruth": "Rut", "1 Samuel": "1 Sa", "2 Samuel": "2 Sa", "1 Kings": "1 Ki", "2 Kings": "2 Ki", "1 Chronicles": "1 Ch", "2 Chronicles": "2 Ch", "Ezra": "Ezr", "Nehemiah": "Neh", "Esther": "Est", "Job": "Job", "Psalms": "Psa", "Proverbs": "Pro", "Ecclesiastes": "Ecc", "Song of Solomon": "Sng", "Isaiah": "Isa", "Jeremiah": "Jer", "Lamentations": "Lam", "Ezekiel": "Eze", "Daniel": "Dan", "Hosea": "Hos", "Joel": "Joe", "Amos": "Amo", "Obadiah": "Oba", "Jonah": "Jon", "Micah": "Mic", "Nahum": "Nah", "Habakkuk": "Hab", "Zephaniah": "Zep", "Haggai": "Hag", "Zechariah": "Zec", "Malachi": "Mal",
+    "Matthew": "Mat", "Mark": "Mrk", "Luke": "Luk", "John": "Jhn", "Acts": "Act", "Romans": "Rom", "1 Corinthians": "1 Co", "2 Corinthians": "2 Co", "Galatians": "Gal", "Ephesians": "Eph", "Philippians": "Php", "Colossians": "Col", "1 Thessalonians": "1 Th", "2 Thessalonians": "2 Th", "1 Timothy": "1 Ti", "2 Timothy": "2 Ti", "Titus": "Tit", "Philemon": "Phm", "Hebrews": "Heb", "James": "Jas", "1 Peter": "1 Pe", "2 Peter": "2 Pe", "1 John": "1 Jn", "2 John": "2 Jn", "3 John": "3 Jn", "Jude": "Jud", "Revelation": "Rev"
+};
+
 const OPENBIBLE_TRANS = [
     { value: 'akjv', label: 'AKJV', full: 'American King James Version' },
     { value: 'asv', label: 'ASV', full: 'American Standard Version' },
@@ -608,6 +660,8 @@ const OPENBIBLE_TRANS = [
 
 let displayValue = '0';
 let historyValue = '';
+let lastTapTime = 0;
+let lastTapVal = '';
 let activeData = { OT: [], NT: [] }; 
 let currentBookIndex = -1;
 let currentIsNT = false;
@@ -911,6 +965,14 @@ function formatDisplay(str) {
 }
 
 function calcInput(val) {
+    const now = Date.now();
+    // Debounce duplicate click events firing within 100ms for the same button
+    if (now - lastTapTime < 100 && lastTapVal === val) {
+        return;
+    }
+    lastTapTime = now;
+    lastTapVal = val;
+
     if (!userInteracted) registerInteraction();
     
     if (val === 'C') { 
@@ -1162,7 +1224,18 @@ function updateResumeFabVisibility() {
             
             let text = document.createElement('span');
             text.className = 'resume-text';
-            text.innerText = `${loc.book} ${loc.chap} (${loc.trans.toUpperCase()})`;
+
+            let longSpan = document.createElement('span');
+            longSpan.className = 'text-long';
+            longSpan.innerText = `${loc.book} ${loc.chap} (${loc.trans.toUpperCase()})`;
+            
+            let shortBook = BOOK_SHORTHANDS[loc.book] || loc.book;
+            let shortSpan = document.createElement('span');
+            shortSpan.className = 'text-short';
+            shortSpan.innerText = `${shortBook} ${loc.chap} (${loc.trans.toUpperCase()})`;
+
+            text.appendChild(longSpan);
+            text.appendChild(shortSpan);
             
             btn.appendChild(icon);
             btn.appendChild(text);
@@ -1405,6 +1478,25 @@ function openStudy(site) {
 /* =========================================
    SPEECH SYNTHESIS (AUDIO)
 ========================================= */
+function updateAudioProgress(vNum) {
+    const playBtn = $('playBtn');
+    if (!playBtn) return;
+    const book = getCurrentBook();
+    if (!book || !book.chapters || !book.chapters[currentChapter]) {
+        playBtn.style.setProperty('--progress-angle', '0deg');
+        return;
+    }
+    const verses = book.chapters[currentChapter];
+    const totalVerses = verses.filter(v => v).length;
+    if (totalVerses <= 0 || vNum < 1) {
+        playBtn.style.setProperty('--progress-angle', '0deg');
+        return;
+    }
+    const ratio = Math.min(vNum / totalVerses, 1);
+    const angle = (ratio * 360).toFixed(1);
+    playBtn.style.setProperty('--progress-angle', `${angle}deg`);
+}
+
 function togglePlay() {
     if (!synth) return;
     if (isPlaying) {
@@ -1429,9 +1521,14 @@ function playVerse(vNum) {
     const verses = getCurrentBook().chapters[currentChapter];
     while(!verses[vNum] && vNum < verses.length) vNum++;
     
-    if (vNum >= verses.length) { nextChapter(true); return; }
+    if (vNum >= verses.length) { 
+        updateAudioProgress(verses.length);
+        nextChapter(true); 
+        return; 
+    }
 
     playingIndex = vNum; highlightPlayingVerse();
+    updateAudioProgress(vNum);
 
     currentUtterance = new SpeechSynthesisUtterance(verses[vNum]);
     if (state.voiceURI) { let voice = voices.find(v => v.voiceURI === state.voiceURI); if (voice) currentUtterance.voice = voice; }
@@ -1440,7 +1537,10 @@ function playVerse(vNum) {
     // onend triggers the next verse, but ONLY if we are actively playing and not paused.
     currentUtterance.onend = () => { if (isPlaying && !isPaused) playVerse(vNum + 1); };
 
-    isPlaying = true; isPaused = false; requestWakeLock(); $('playIcon').innerText = 'pause_circle'; synth.speak(currentUtterance);
+    isPlaying = true; isPaused = false; requestWakeLock(); 
+    $('playIcon').innerText = 'pause'; 
+    $('playBtn').classList.remove('is-paused');
+    synth.speak(currentUtterance);
 }
 
 function pauseSpeech() {
@@ -1448,7 +1548,8 @@ function pauseSpeech() {
     isPaused = true; 
     synth.cancel(); // Completely cancel to avoid browser hanging bugs
     releaseWakeLock();
-    $('playIcon').innerText = 'play_circle';
+    $('playIcon').innerText = 'play_arrow';
+    $('playBtn').classList.add('is-paused');
     highlightPlayingVerse();
 }
 
@@ -1470,7 +1571,12 @@ function highlightPlayingVerse() {
 
 function cancelSpeech() {
     isPlaying = false; isPaused = false; currentUtterance = null; releaseWakeLock(); if (synth) synth.cancel();
-    $('playIcon').innerText = 'play_circle';
+    $('playIcon').innerText = 'play_arrow';
+    const playBtn = $('playBtn');
+    if (playBtn) {
+        playBtn.classList.remove('is-paused');
+        playBtn.style.setProperty('--progress-angle', '0deg');
+    }
     clearPlayingVerseStyles();
 }
 
@@ -1598,11 +1704,20 @@ function changeSpeechRate(delta) {
 }
 
 function applySettings() {
-    document.documentElement.setAttribute('data-theme', state.theme);
+    let appliedTheme = state.theme;
+    if (appliedTheme === 'system') {
+        appliedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', appliedTheme);
     document.documentElement.style.setProperty('--reader-font-family', state.fontFamily);
     document.documentElement.style.setProperty('--reader-font-size', state.fontSize + 'px');
     document.body.classList.toggle('panic-active', state.panicEnabled);
 }
+
+// System theme listener
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (state.theme === 'system') applySettings();
+});
 
 function populateVoices() {
     if (!synth) return;
@@ -1625,6 +1740,7 @@ if (synth && synth.onvoiceschanged !== undefined) synth.onvoiceschanged = popula
    PANIC LOGIC
 ========================================= */
 function triggerPanic() {
+    document.querySelectorAll('dialog').forEach(d => { if (d.open) d.close(); });
     cancelSpeech(); playingIndex = -1; clearSelection();
     if (state.panicEnabled) { state.secretUnlocked = false; showCalculator(); }
 }
