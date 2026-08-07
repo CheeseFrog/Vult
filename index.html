@@ -1279,7 +1279,7 @@ async function loadBibleData() {
 
         document.body.classList.remove('is-loading'); return true;
     } catch (e) {
-        document.body.classList.remove('is-loading'); alert(`Error loading ${state.translation.toUpperCase()}.`); return false;
+        document.body.classList.remove('is-loading'); return false;
     }
 }
 
@@ -1298,6 +1298,71 @@ async function switchTranslation(newTrans) {
     }
 }
 
+// Cross-source translation resolver for Bookmarks, Recents, and startup loading
+async function resolveAndSwitchTranslation(newTrans) {
+    newTrans = newTrans.toLowerCase();
+    if (state.translation === newTrans && activeData.OT.length > 0) return true;
+
+    const prevTrans = state.translation;
+    const prevSource = state.source;
+
+    // 1. Try with the currently active source first
+    state.translation = newTrans;
+    $('transSelect').value = newTrans;
+    updateTransDisplay();
+    activeData = { OT: [], NT: [] };
+
+    if (await loadBibleData()) {
+        saveState();
+        return true;
+    }
+
+    // 2. If it fails, attempt to switch to the alternative source and search there
+    const altSource = prevSource === 'getbible' ? 'openbible' : 'getbible';
+    state.source = altSource;
+    await populateTranslations();
+    
+    let existsInAlt = Array.from($('transSelect').options).some(o => o.value === newTrans);
+    if (!existsInAlt) {
+        // Not found in alternative source either; revert fully
+        state.source = prevSource;
+        state.translation = prevTrans;
+        await populateTranslations();
+        $('transSelect').value = prevTrans;
+        updateTransDisplay();
+        activeData = { OT: [], NT: [] };
+        await loadBibleData();
+        alert(`Error loading translation ${newTrans.toUpperCase()}.`);
+        return false;
+    }
+
+    state.translation = newTrans;
+    $('transSelect').value = newTrans;
+    updateTransDisplay();
+    activeData = { OT: [], NT: [] };
+
+    if (await loadBibleData()) {
+        saveState();
+        // Update settings UI display elements to match the new active source
+        const sourceDisplay = $('sourceDisplay');
+        if (sourceDisplay) sourceDisplay.innerText = altSource === 'getbible' ? 'GetBible' : 'OpenBible';
+        const setSource = $('setSource');
+        if (setSource) setSource.value = altSource;
+        return true;
+    }
+
+    // 3. Fallback failure; restore original state
+    state.source = prevSource;
+    state.translation = prevTrans;
+    await populateTranslations();
+    $('transSelect').value = prevTrans;
+    updateTransDisplay();
+    activeData = { OT: [], NT: [] };
+    await loadBibleData();
+    alert(`Error loading translation ${newTrans.toUpperCase()}.`);
+    return false;
+}
+
 /* =========================================
    BIBLE UI NAVIGATION
 ========================================= */
@@ -1310,12 +1375,17 @@ async function openBibleApp() {
     document.body.classList.add('is-loading');
     await populateTranslations();
 
-    const success = await loadBibleData();
+    let success = false;
+    if (state.recentLocations && state.recentLocations.length > 0) {
+        const primaryLoc = state.recentLocations[0];
+        success = await resolveAndSwitchTranslation(primaryLoc.trans);
+    } else {
+        success = await loadBibleData();
+    }
     document.body.classList.remove('is-loading');
     
     if (success && state.recentLocations && state.recentLocations.length > 0) {
         const primaryLoc = state.recentLocations[0];
-        if (primaryLoc.trans !== state.translation) { await switchTranslation(primaryLoc.trans); }
         let { exists, isNT } = checkBookExists(primaryLoc.book);
         if(exists) { pushNavState('home'); pushNavState('chapters'); openChapter(primaryLoc.book, isNT, primaryLoc.chap, false); }
         else { renderHome(); }
@@ -1327,7 +1397,7 @@ function createBookmarkElement(bm) {
     div.className = 'bookmark-item';
     div.innerHTML = `<div class="bookmark-ref">${bm.ref} (${bm.trans.toUpperCase()})</div><div class="bookmark-text">${bm.text}</div>`;
     div.onclick = async () => {
-        if (await switchTranslation(bm.trans)) {
+        if (await resolveAndSwitchTranslation(bm.trans)) {
             let { isNT } = checkBookExists(bm.book);
             openChapter(bm.book, isNT, bm.chapter, true, bm.verse);
         }
@@ -1338,7 +1408,7 @@ function createBookmarkElement(bm) {
 async function resumeLocation(index) {
     if (!state.recentLocations || !state.recentLocations[index]) return;
     const loc = state.recentLocations[index];
-    if (await switchTranslation(loc.trans)) {
+    if (await resolveAndSwitchTranslation(loc.trans)) {
         let { exists, isNT } = checkBookExists(loc.book);
         if(exists) openChapter(loc.book, isNT, loc.chap, false);
     }
