@@ -87,7 +87,7 @@
 
         /* Unified Fade Up Animation */
         @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        /* NEW: Chapter Transition Animation */
+        /* Chapter Transition Animation */
         .chapter-transition { animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         /* --- Calculator View (Centered) --- */
@@ -362,7 +362,7 @@
     <!-- EXTERNAL STUDY MODAL -->
     <dialog id="studyModal">
         <h3>Further Study</h3>
-        <p>Open your selected verses in a web browser for deeper commentary and cross-referencing.</p>
+        <p>Open selected verses in a web browser for deeper commentary and cross-referencing.</p>
         <div class="ios-list">
             <div class="ios-row" onclick="openStudy('blb')">
                 <div class="ios-row-label">Blue Letter Bible</div>
@@ -499,9 +499,9 @@
                 <button class="header-btn" id="navBack" style="display: none;">
                     <span class="material-symbols-rounded">arrow_back_ios</span>
                 </button>
-                <div class="translation-select-wrapper" id="transSelectWrapper">
+                <div class="translation-select-wrapper" id="transSelectWrapper" style="font-size: 1.2rem;">
                     <span id="transSelectDisplay">KJV</span>
-                    <span class="material-symbols-rounded" style="font-size: 20px; margin-left: 2px;">expand_more</span>
+                    <span class="material-symbols-rounded">expand_more</span>
                     <select class="translation-select" id="transSelect"></select>
                 </div>
             </div>
@@ -646,9 +646,10 @@ const BIBLE_BOOKS = [
     "Matthew", "Mark", "Luke", "John", "Acts", "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
 ];
 
+// Updated to match ESV Global Study Bible abbreviations
 const BOOK_SHORTHANDS = {
-    "Genesis": "Gen", "Exodus": "Exo", "Leviticus": "Lev", "Numbers": "Num", "Deuteronomy": "Deu", "Joshua": "Jos", "Judges": "Jdg", "Ruth": "Rut", "1 Samuel": "1 Sa", "2 Samuel": "2 Sa", "1 Kings": "1 Ki", "2 Kings": "2 Ki", "1 Chronicles": "1 Ch", "2 Chronicles": "2 Ch", "Ezra": "Ezr", "Nehemiah": "Neh", "Esther": "Est", "Job": "Job", "Psalms": "Psa", "Proverbs": "Pro", "Ecclesiastes": "Ecc", "Song of Solomon": "Sng", "Isaiah": "Isa", "Jeremiah": "Jer", "Lamentations": "Lam", "Ezekiel": "Eze", "Daniel": "Dan", "Hosea": "Hos", "Joel": "Joe", "Amos": "Amo", "Obadiah": "Oba", "Jonah": "Jon", "Micah": "Mic", "Nahum": "Nah", "Habakkuk": "Hab", "Zephaniah": "Zep", "Haggai": "Hag", "Zechariah": "Zec", "Malachi": "Mal",
-    "Matthew": "Mat", "Mark": "Mrk", "Luke": "Luk", "John": "Jhn", "Acts": "Act", "Romans": "Rom", "1 Corinthians": "1 Co", "2 Corinthians": "2 Co", "Galatians": "Gal", "Ephesians": "Eph", "Philippians": "Php", "Colossians": "Col", "1 Thessalonians": "1 Th", "2 Thessalonians": "2 Th", "1 Timothy": "1 Ti", "2 Timothy": "2 Ti", "Titus": "Tit", "Philemon": "Phm", "Hebrews": "Heb", "James": "Jas", "1 Peter": "1 Pe", "2 Peter": "2 Pe", "1 John": "1 Jn", "2 John": "2 Jn", "3 John": "3 Jn", "Jude": "Jud", "Revelation": "Rev"
+    "Genesis": "Gen.", "Exodus": "Ex.", "Leviticus": "Lev.", "Numbers": "Num.", "Deuteronomy": "Deut.", "Joshua": "Josh.", "Judges": "Judg.", "Ruth": "Ruth", "1 Samuel": "1 Sam.", "2 Samuel": "2 Sam.", "1 Kings": "1 Kings", "2 Kings": "2 Kings", "1 Chronicles": "1 Chron.", "2 Chronicles": "2 Chron.", "Ezra": "Ezra", "Nehemiah": "Neh.", "Esther": "Esth.", "Job": "Job", "Psalms": "Ps.", "Proverbs": "Prov.", "Ecclesiastes": "Eccles.", "Song of Solomon": "Song", "Isaiah": "Isa.", "Jeremiah": "Jer.", "Lamentations": "Lam.", "Ezekiel": "Ezek.", "Daniel": "Dan.", "Hosea": "Hos.", "Joel": "Joel", "Amos": "Amos", "Obadiah": "Obad.", "Jonah": "Jonah", "Micah": "Mic.", "Nahum": "Nah.", "Habakkuk": "Hab.", "Zephaniah": "Zeph.", "Haggai": "Hag.", "Zechariah": "Zech.", "Malachi": "Mal.",
+    "Matthew": "Matt.", "Mark": "Mark", "Luke": "Luke", "John": "John", "Acts": "Acts", "Romans": "Rom.", "1 Corinthians": "1 Cor.", "2 Corinthians": "2 Cor.", "Galatians": "Gal.", "Ephesians": "Eph.", "Philippians": "Phil.", "Colossians": "Col.", "1 Thessalonians": "1 Thess.", "2 Thessalonians": "2 Thess.", "1 Timothy": "1 Tim.", "2 Timothy": "2 Tim.", "Titus": "Titus", "Philemon": "Philem.", "Hebrews": "Heb.", "James": "James", "1 Peter": "1 Pet.", "2 Peter": "2 Pet.", "1 John": "1 John", "2 John": "2 John", "3 John": "3 John", "Jude": "Jude", "Revelation": "Rev."
 };
 
 const OPENBIBLE_TRANS = [
@@ -665,6 +666,36 @@ const OPENBIBLE_TRANS = [
     { value: 'web', label: 'WEB', full: 'World English Bible' },
     { value: 'ylt', label: 'YLT', full: 'Young\'s Literal Translation' }
 ];
+
+// Manual overrides for custom translation groupings
+const TRANS_GROUP_OVERRIDES = {
+    "klv": "Other (Unspecified)",
+    "mal1910": "Other (Asia)",
+    "tpikjpb": "Other (Oceania)",
+    "bibelselskap": "Norwegian",
+    "calo": "Spanish",
+    "che1860": "Other (Americas)",
+    "csielizabeth": "Other (Europe)",
+    "dari": "Other (Asia)",
+    "gaelic": "Gaelic",
+    "manxgaelic": "Gaelic",
+    "mg1865": "Other (Africa)",
+    "moderngreek": "Greek",
+    "monkjv": "Other (Asia)",
+    "ndebele": "Other (Africa)",
+    "norsmb": "Norwegian",
+    "shona": "Other (Africa)",
+    "tausug": "Other (Oceania)"
+};
+
+// Fallback Region mapping for languages with only 1 translation 
+const LANG_REGION_MAP = {
+    "Albanian": "Europe", "Basque": "Europe", "Breton": "Europe", "Bulgarian": "Europe", "Croatian": "Europe", "Czech": "Europe", "Danish": "Europe", "Dutch": "Europe", "Estonian": "Europe", "Faroese": "Europe", "Finnish": "Europe", "French": "Europe", "Georgian": "Europe", "German": "Europe", "Gothic": "Europe", "Greek": "Europe", "Hungarian": "Europe", "Icelandic": "Europe", "Italian": "Europe", "Latin": "Europe", "Latvian": "Europe", "Lithuanian": "Europe", "Norwegian": "Europe", "Polish": "Europe", "Portuguese": "Europe", "Romansh": "Europe", "Romanian": "Europe", "Russian": "Europe", "Scots Gaelic": "Europe", "Serbian": "Europe", "Slovak": "Europe", "Slovenian": "Europe", "Spanish": "Europe", "Swedish": "Europe", "Ukrainian": "Europe", "Welsh": "Europe",
+    "Afrikaans": "Africa", "Amharic": "Africa", "Coptic": "Africa", "Swahili": "Africa", "Wolof": "Africa", "Xhosa": "Africa", "Zulu": "Africa",
+    "Arabic": "Asia", "Aramaic": "Asia", "Armenian": "Asia", "Awadhi": "Asia", "Bengali": "Asia", "Chinese": "Asia", "Hebrew": "Asia", "Hindi": "Asia", "Indonesian": "Asia", "Japanese": "Asia", "Korean": "Asia", "Malayalam": "Asia", "Marathi": "Asia", "Nepali": "Asia", "Persian": "Asia", "Punjabi": "Asia", "Syriac": "Asia", "Tamil": "Asia", "Telugu": "Asia", "Thai": "Asia", "Turkish": "Asia", "Urdu": "Asia", "Vietnamese": "Asia",
+    "Haitian Creole": "Americas", "Kekchi": "Americas", "Navajo": "Americas", "Potawatomi": "Americas",
+    "Chamorro": "Oceania", "Maori": "Oceania", "Tagalog": "Oceania", "Uma": "Oceania"
+};
 
 let displayValue = '0';
 let historyValue = '';
@@ -833,12 +864,17 @@ window.onpopstate = function (event) {
 };
 
 /* =========================================
-   INITIALIZATION & SHAKE SUPPORT
+   INITIALIZATION & SHAKE/KEYBOARD SUPPORT
 ========================================= */
 function init() {
     loadState();
     if (!state.source) { state.source = 'getbible'; saveState(); }
     
+    // Explicitly lock secretUnlocked on startup if panic mode is active to enable initial keyboard input
+    if (state.panicEnabled) {
+        state.secretUnlocked = false;
+    }
+
     applySettings(); checkSpeechSupport(); setupPlayButton(); setupDialogDismiss(); setupDetailsAnimation();
     setTimeout(updateDynamicManifest, 100); 
     
@@ -862,6 +898,35 @@ function init() {
     });
     $('calcHelpBtn').addEventListener('click', () => openModal('helpModal', 'modal-help'));
 }
+
+// Global Keyboard Listener for Calculator
+document.addEventListener('keydown', (e) => {
+    // Only map keys if calculator view is active (secretUnlocked is false)
+    if (state.secretUnlocked) return;
+    
+    const key = e.key;
+    if (key >= '0' && key <= '9') {
+        calcInput(key);
+    } else if (key === '.') {
+        calcInput('.');
+    } else if (key === '+') {
+        calcInput('+');
+    } else if (key === '-') {
+        calcInput('−');
+    } else if (key === '*') {
+        calcInput('×');
+    } else if (key === '/') {
+        e.preventDefault(); // Prevent "Quick Find" in Firefox
+        calcInput('÷');
+    } else if (key === '%') {
+        calcInput('%');
+    } else if (key === 'Enter' || key === '=') {
+        e.preventDefault(); // Prevent accidental form submissions/refreshes
+        calcInput('=');
+    } else if (key === 'Backspace' || key === 'Delete') {
+        calcInput('C');
+    }
+});
 
 function handleShakeEvent() {
     if (state.panicEnabled && state.shakeToPanicEnabled && state.secretUnlocked) {
@@ -956,6 +1021,7 @@ function saveState() { localStorage.setItem('vult_state', JSON.stringify(state))
    CALCULATOR LOGIC
 ========================================= */
 function showCalculator() {
+    state.secretUnlocked = false; 
     $('app-calculator-wrapper').style.display = 'flex';
     $('app-bible').style.display = 'none';
     displayValue = '0'; 
@@ -1041,37 +1107,102 @@ async function populateTranslations() {
     select.innerHTML = '';
     
     if (state.source === 'getbible') {
+        const createOptGroup = (label, items) => {
+            let group = document.createElement('optgroup');
+            group.label = label;
+            items.sort((a,b) => a.abbreviation.localeCompare(b.abbreviation)).forEach(t => {
+                let opt = document.createElement('option');
+                opt.value = t.abbreviation || t.value;
+                opt.innerText = `${(t.abbreviation || t.label).toUpperCase()} - ${t.translation || t.full}`;
+                opt.dataset.acronym = (t.abbreviation || t.label).toUpperCase();
+                group.appendChild(opt);
+            });
+            return group;
+        };
+
         try {
             const res = await fetch('https://api.getbible.net/v2/translations.json');
             const data = await res.json();
             translationMeta = data; 
-            let transArray = Object.values(data).sort((a,b) => a.abbreviation.localeCompare(b.abbreviation));
+            let transArray = Object.values(data);
             
+            let normalGroups = {};
+            let otherGroups = {};
+            let langGroups = {};
+
             transArray.forEach(t => {
-                let opt = document.createElement('option');
-                opt.value = t.abbreviation;
-                opt.innerText = `${t.abbreviation.toUpperCase()} - ${t.translation}`;
-                opt.dataset.acronym = t.abbreviation.toUpperCase();
-                select.appendChild(opt);
+                let abbrev = (t.abbreviation || "").toLowerCase();
+                
+                // Route manually mapped abbreviations to predefined custom groups
+                if (TRANS_GROUP_OVERRIDES[abbrev]) {
+                    let gLabel = TRANS_GROUP_OVERRIDES[abbrev];
+                    if (gLabel.startsWith("Other")) {
+                        if (!otherGroups[gLabel]) otherGroups[gLabel] = [];
+                        otherGroups[gLabel].push(t);
+                    } else {
+                        if (!langGroups[gLabel]) langGroups[gLabel] = [];
+                        langGroups[gLabel].push(t);
+                    }
+                } else {
+                    let lang = t.language || 'Unknown';
+                    if (!langGroups[lang]) langGroups[lang] = [];
+                    langGroups[lang].push(t);
+                }
             });
+
+            // Reconstruct general language groups
+            Object.keys(langGroups).forEach(lang => {
+                if (langGroups[lang].length > 1) {
+                    if (!normalGroups[lang]) normalGroups[lang] = [];
+                    normalGroups[lang].push(...langGroups[lang]);
+                } else {
+                    let region = LANG_REGION_MAP[lang] || "Unspecified";
+                    let gLabel = `Other (${region})`;
+                    
+                    if (!otherGroups[gLabel]) otherGroups[gLabel] = [];
+                    otherGroups[gLabel].push(langGroups[lang][0]);
+                }
+            });
+
+            // Append standard groups first
+            Object.keys(normalGroups).sort().forEach(label => {
+                select.appendChild(createOptGroup(label, normalGroups[label]));
+            });
+
+            // Append "Other" groups at the bottom
+            Object.keys(otherGroups).sort().forEach(label => {
+                select.appendChild(createOptGroup(label, otherGroups[label]));
+            });
+
         } catch (e) {
+            let group = document.createElement('optgroup');
+            group.label = "English";
             let opt = document.createElement('option');
             opt.value = 'kjv'; opt.innerText = 'KJV - King James Version'; opt.dataset.acronym = 'KJV';
-            select.appendChild(opt);
+            group.appendChild(opt);
+            select.appendChild(group);
         }
     } else {
-        OPENBIBLE_TRANS.forEach(t => {
+        // OpenBible flat list without optgroups
+        OPENBIBLE_TRANS.sort((a, b) => a.label.localeCompare(b.label)).forEach(t => {
             let opt = document.createElement('option');
             opt.value = t.value;
-            opt.innerText = `${t.label} - ${t.full}`;
-            opt.dataset.acronym = t.label;
+            opt.innerText = `${t.label.toUpperCase()} - ${t.full}`;
+            opt.dataset.acronym = t.label.toUpperCase();
             select.appendChild(opt);
         });
     }
     
+    // Attempt to reinstate saved selection, otherwise fall back to KJV
     let exists = Array.from(select.options).some(o => o.value === state.translation);
-    if (exists) { select.value = state.translation; } 
-    else if (select.options.length > 0) { state.translation = select.options[0].value; select.value = state.translation; saveState(); }
+    if (exists) { 
+        state.translation = state.translation; 
+    } else { 
+        state.translation = 'kjv'; 
+        saveState(); 
+    }
+    
+    select.value = state.translation; 
     updateTransDisplay();
 }
 
@@ -1178,7 +1309,6 @@ async function openBibleApp() {
     
     document.body.classList.add('is-loading');
     await populateTranslations();
-    $('transSelect').value = state.translation; updateTransDisplay();
 
     const success = await loadBibleData();
     document.body.classList.remove('is-loading');
@@ -1349,11 +1479,10 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
 
     const container = $('readerContent'); 
     
-    // --- Trigger CSS transition for chapter changes ---
+    // Trigger CSS transition for chapter changes
     container.classList.remove('chapter-transition');
-    void container.offsetWidth; // Force a reflow
+    void container.offsetWidth; 
     container.classList.add('chapter-transition');
-    // ---------------------------------------------------
 
     container.innerHTML = '';
     selectedVerses.clear(); updateSelectionFabs();
