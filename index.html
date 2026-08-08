@@ -36,8 +36,8 @@
             --base-serif: Georgia, serif;
             
             /* Reader Specific */
-            --reader-font-family: var(--base-sans-serif);
-            --reader-font-size: 18px;
+            --reader-font-family: var(--base-serif);
+            --reader-font-size: 16px;
         }
 
         [data-theme="light"] {
@@ -89,8 +89,9 @@
         .ios-select-overlay, .translation-select { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; appearance: none; -webkit-appearance: none; z-index: 10; }
         .resume-scroll::-webkit-scrollbar, body:has(#showHelpCheck:not(:checked)) #calcHelpBtn, summary::-webkit-details-marker { display: none; }
 
-        /* Unified Fade Up Animation */
+        /* Fade Up Animation for Views */
         @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
         /* Chapter Transition Animation */
         .chapter-transition { animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
@@ -165,7 +166,7 @@
         .view { display: none; flex: 1; overflow-y: auto; overflow-x: hidden; flex-direction: column; padding: 10px 0 180px; transition: filter 0.3s, opacity 0.3s; }
         .view.active { display: flex; animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
-        header { display: flex; align-items: center; padding: 15px 20px; background-color: var(--header-bg); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 5; }
+        header { display: flex; align-items: center; padding: 15px 20px; background-color: var(--header-bg); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 5; box-shadow: 0 8px 12px var(--bg-color); }
         .header-left, .header-right { flex: 1; display: flex; align-items: center; min-width: 0; }
         .header-right { justify-content: flex-end; }
         .header-btn { background: none; color: var(--primary-color); font-size: 1.1rem; }
@@ -241,12 +242,38 @@
         .fab-resume { background: var(--surface-color); color: var(--primary-color); border-radius: 28px; gap: 8px; padding: 0 20px; font-weight: 600; font-size: 0.95rem; flex-shrink: 0; max-width: calc(100vw - 40px); }
         .fab-resume:active { transform: scale(0.95); background: var(--surface-color-active); }
         
-        .selection-fabs { position: fixed; bottom: 20px; left: 20px; display: flex; flex-direction: row; gap: 10px; gap: min(calc(((100vw - 56px*5) - 40px)/4), 20px); z-index: 40; pointer-events: none; opacity: 0; transform: translateY(12px); transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.3s; }
-        .selection-fabs.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        /* Selection FABs (Smooth transition toggle without keyframe flash) */
+        .selection-fabs { 
+            position: fixed; bottom: 20px; left: 20px; 
+            display: flex; flex-direction: row; 
+            gap: 10px; gap: min(calc(((100vw - 56px*5) - 40px)/4), 20px); 
+            z-index: 40; pointer-events: none; 
+            opacity: 0; transform: translateY(12px); 
+            transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.3s; 
+        }
+        .selection-fabs.visible { 
+            pointer-events: auto; 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+        
         .fab-action { background: var(--surface-color); color: var(--primary-color); position: relative; }
 
-        /* Resume Wrapper Layout */
-        .resume-wrapper { position: fixed; bottom: 0; left: 0; right: 85px; height: 96px; z-index: 40; transition: bottom 0.3s; mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); }
+        /* Resume Wrapper Layout (Smooth transition toggle without keyframe flash) */
+        .resume-wrapper { 
+            position: fixed; bottom: 0; left: 0; right: 85px; height: 96px; 
+            z-index: 40; mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); 
+            -webkit-mask-image: linear-gradient(to right, black calc(100% - 40px), transparent 100%); 
+            pointer-events: none; 
+            opacity: 0; transform: translateY(12px); 
+            transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.3s; 
+        }
+        .resume-wrapper.visible { 
+            pointer-events: auto; 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+
         .resume-scroll { display: flex; gap: 10px; height: 100%; overflow-x: auto; align-items: center; scrollbar-width: none; padding-left: 20px; padding-right: 40px; }
         body:not(.panic-active) .resume-wrapper { right: 0; mask-image: none; -webkit-mask-image: none; }
         body:not(.panic-active) .resume-scroll { padding-right: 20px; }
@@ -260,7 +287,7 @@
         }
 
         /* Bottom Bar */
-        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--header-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; transform: translateY(100%); transition: transform 0.3s; z-index: 40; }
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--header-bg); border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center; transform: translateY(100%); transition: transform 0.3s; z-index: 39; box-shadow: 0 -25px 35px var(--bg-color); }
         .bottom-bar.visible { transform: translateY(0); }
         .bb-btn { background: none; color: var(--text-color); padding: 10px; }
         .bb-btn .material-symbols-rounded { font-size: 32px; }
@@ -391,107 +418,109 @@
     <!-- SETTINGS MODAL -->
     <dialog id="settingsModal">
         <h3>Settings</h3>
-        <div class="ios-list">
-            <div class="ios-row ios-select-row">
-                <div class="ios-row-label">Theme</div>
-                <div class="ios-row-control">
-                    <div class="ios-select-wrapper">
-                        <span id="themeDisplay" class="ios-select-display">System</span>
-                        <span class="material-symbols-rounded">chevron_right</span>
+        <div id="settings-list" class="settings-list" style="max-height: 70vh; overflow-y: auto;">
+            <div class="ios-list">
+                <div class="ios-row ios-select-row">
+                    <div class="ios-row-label">Theme</div>
+                    <div class="ios-row-control">
+                        <div class="ios-select-wrapper">
+                            <span id="themeDisplay" class="ios-select-display">System</span>
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </div>
+                    </div>
+                    <select id="setTheme" class="ios-select-overlay">
+                        <option value="system">System</option>
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </div>
+                
+                <div class="ios-row ios-select-row">
+                    <div class="ios-row-label">Font Family</div>
+                    <div class="ios-row-control">
+                        <div class="ios-select-wrapper">
+                            <span id="fontFamDisplay" class="ios-select-display">Sans-serif</span>
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </div>
+                    </div>
+                    <select id="setFontFam" class="ios-select-overlay">
+                        <option value="var(--base-sans-serif)">Sans-serif</option>
+                        <option value="var(--base-serif)">Serif</option>
+                        <option value="monospace">Monospace</option>
+                    </select>
+                </div>
+                
+                <div class="ios-row">
+                    <div class="ios-row-label">Font Size</div>
+                    <div class="ios-row-control">
+                        <div class="ios-stepper">
+                            <button onclick="changeFontSize(-1)">-</button>
+                            <span id="fontSizeDisplay">18</span>
+                            <button onclick="changeFontSize(1)">+</button>
+                        </div>
                     </div>
                 </div>
-                <select id="setTheme" class="ios-select-overlay">
-                    <option value="system">System</option>
-                    <option value="dark">Dark</option>
-                    <option value="light">Light</option>
-                </select>
-            </div>
-            
-            <div class="ios-row ios-select-row">
-                <div class="ios-row-label">Font Family</div>
-                <div class="ios-row-control">
-                    <div class="ios-select-wrapper">
-                        <span id="fontFamDisplay" class="ios-select-display">Sans-serif</span>
-                        <span class="material-symbols-rounded">chevron_right</span>
+                
+                <div class="ios-row ios-select-row">
+                    <div class="ios-row-label">Data Source</div>
+                    <div class="ios-row-control">
+                        <div class="ios-select-wrapper">
+                            <span id="sourceDisplay" class="ios-select-display">GetBible</span>
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </div>
                     </div>
-                </div>
-                <select id="setFontFam" class="ios-select-overlay">
-                    <option value="var(--base-sans-serif)">Sans-serif</option>
-                    <option value="var(--base-serif)">Serif</option>
-                    <option value="monospace">Monospace</option>
-                </select>
-            </div>
-            
-            <div class="ios-row">
-                <div class="ios-row-label">Font Size</div>
-                <div class="ios-row-control">
-                    <div class="ios-stepper">
-                        <button onclick="changeFontSize(-1)">-</button>
-                        <span id="fontSizeDisplay">18</span>
-                        <button onclick="changeFontSize(1)">+</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="ios-row ios-select-row">
-                <div class="ios-row-label">Data Source</div>
-                <div class="ios-row-control">
-                    <div class="ios-select-wrapper">
-                        <span id="sourceDisplay" class="ios-select-display">GetBible</span>
-                        <span class="material-symbols-rounded">chevron_right</span>
-                    </div>
-                </div>
-                <select id="setSource" class="ios-select-overlay">
-                    <option value="getbible">GetBible</option>
-                    <option value="openbible">OpenBible</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="ios-list" id="speechSettingsGroup">
-            <div class="ios-row" id="speechRateRow">
-                <div class="ios-row-label">Speech Rate</div>
-                <div class="ios-row-control">
-                    <div class="ios-stepper">
-                        <button onclick="changeSpeechRate(-0.1)">-</button>
-                        <span id="rateDisplay">1.0</span>
-                        <button onclick="changeSpeechRate(0.1)">+</button>
-                    </div>
+                    <select id="setSource" class="ios-select-overlay">
+                        <option value="getbible">GetBible</option>
+                        <option value="openbible">OpenBible</option>
+                    </select>
                 </div>
             </div>
 
-            <div class="ios-row ios-select-row" id="speechVoiceRow">
-                <div class="ios-row-label">Voice</div>
-                <div class="ios-row-control">
-                    <div class="ios-select-wrapper">
-                        <span id="voiceDisplay" class="ios-select-display">System Default</span>
-                        <span class="material-symbols-rounded">chevron_right</span>
+            <div class="ios-list" id="speechSettingsGroup">
+                <div class="ios-row" id="speechRateRow">
+                    <div class="ios-row-label">Speech Rate</div>
+                    <div class="ios-row-control">
+                        <div class="ios-stepper">
+                            <button onclick="changeSpeechRate(-0.1)">-</button>
+                            <span id="rateDisplay">1.0</span>
+                            <button onclick="changeSpeechRate(0.1)">+</button>
+                        </div>
                     </div>
                 </div>
-                <select id="setVoice" class="ios-select-overlay"></select>
-            </div>
-        </div>
 
-        <div class="ios-list">
-            <div class="ios-row" id="installRowContainer" onclick="handleInstallClick()">
-                <div class="ios-row-label">Install to Home Screen</div>
-                <div class="ios-row-control">
-                    <span class="material-symbols-rounded text-primary">install_desktop</span>
+                <div class="ios-row ios-select-row" id="speechVoiceRow">
+                    <div class="ios-row-label">Voice</div>
+                    <div class="ios-row-control">
+                        <div class="ios-select-wrapper">
+                            <span id="voiceDisplay" class="ios-select-display">System Default</span>
+                            <span class="material-symbols-rounded">chevron_right</span>
+                        </div>
+                    </div>
+                    <select id="setVoice" class="ios-select-overlay"></select>
                 </div>
             </div>
-            <label class="ios-row">
-                <div class="ios-row-label">Panic Calculator Mode</div>
-                <div class="ios-row-control">
-                    <input type="checkbox" id="setPanic" class="ios-toggle" checked>
+
+            <div class="ios-list">
+                <div class="ios-row" id="installRowContainer" onclick="handleInstallClick()">
+                    <div class="ios-row-label">Install to Home Screen</div>
+                    <div class="ios-row-control">
+                        <span class="material-symbols-rounded text-primary">install_desktop</span>
+                    </div>
                 </div>
-            </label>
-            <!-- Shake to Panic Row -->
-            <label class="ios-row" id="shakeRow">
-                <div class="ios-row-label">Shake to Panic</div>
-                <div class="ios-row-control">
-                    <input type="checkbox" id="setShake" class="ios-toggle">
-                </div>
-            </label>
+                <label class="ios-row">
+                    <div class="ios-row-label">Panic Calculator Mode</div>
+                    <div class="ios-row-control">
+                        <input type="checkbox" id="setPanic" class="ios-toggle" checked>
+                    </div>
+                </label>
+                <!-- Shake to Panic Row -->
+                <label class="ios-row" id="shakeRow">
+                    <div class="ios-row-label">Shake to Panic</div>
+                    <div class="ios-row-control">
+                        <input type="checkbox" id="setShake" class="ios-toggle">
+                    </div>
+                </label>
+            </div>
         </div>
         <button class="modal-btn primary" onclick="closeModal('settingsModal')">Done</button>
     </dialog>
@@ -641,9 +670,13 @@ const setupLongPress = (element, onLongPress, onClick) => {
 async function fetchWithCache(url) {
     if (!('caches' in window)) return fetch(url);
 
-    // Resolve relative URLs against the current location to check the actual protocol
-    const requestUrl = new URL(url, window.location.href);
-    const isCacheable = requestUrl.protocol === 'http:' || requestUrl.protocol === 'https:';
+    let isCacheable = false;
+    try {
+        const requestUrl = new URL(url, window.location.href);
+        isCacheable = requestUrl.protocol === 'http:' || requestUrl.protocol === 'https:';
+    } catch (e) {
+        isCacheable = false;
+    }
 
     try {
         const response = await fetch(url);
@@ -657,18 +690,17 @@ async function fetchWithCache(url) {
         return response;
         
     } catch (err) {
-        // Only attempt to read from cache if the URL was a cacheable type
         if (isCacheable) {
             try {
                 const cache = await caches.open('vult-bible-cache');
                 const cachedResponse = await cache.match(url);
                 if (cachedResponse) return cachedResponse;
             } catch (e) {
-                // Silently ignore cache match errors
+                // Ignore secondary cache errors
             }
         }
         
-        throw err; // Re-throw if network fails and nothing exists in cache (or if uncacheable)
+        throw err;
     }
 }
 
@@ -676,7 +708,7 @@ async function fetchWithCache(url) {
    STATE MANAGEMENT & CONSTANTS
 ========================================= */
 let state = {
-    theme: 'system', fontFamily: "var(--base-sans-serif)", fontSize: 18,
+    theme: 'system', fontFamily: "var(--base-serif)", fontSize: 16,
     panicEnabled: true, shakeToPanicEnabled: false, voiceURI: '', rate: 1, translation: 'kjv',
     bookmarks: [], recentLocations: [], secretUnlocked: false,
     source: 'getbible'
@@ -1465,7 +1497,7 @@ function updateResumeFabVisibility() {
     const scroll = $('resumeScroll');
     
     if (state.recentLocations && state.recentLocations.length > 0) {
-        wrapper.style.display = 'block';
+        wrapper.classList.add('visible');
         scroll.innerHTML = '';
         state.recentLocations.forEach((loc, index) => {
             let btn = document.createElement('button');
@@ -1496,7 +1528,7 @@ function updateResumeFabVisibility() {
             scroll.appendChild(btn);
         });
     } else {
-        wrapper.style.display = 'none';
+        wrapper.classList.remove('visible');
     }
 }
 
@@ -1636,7 +1668,7 @@ function openChapter(bookName, isNT, chapterNum, scrollToVerse = false, targetVe
 function hideAllViews() {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     $('bottomBar').classList.remove('visible');
-    $('resumeWrapper').style.display = 'none';
+    $('resumeWrapper').classList.remove('visible');
     updateSelectionFabs();
 }
 
@@ -1655,7 +1687,9 @@ function updateSelectionFabs() {
         fabs.classList.add('visible');
         let allBookmarked = Array.from(selectedVerses).every(v => isVerseBookmarked(v));
         $('bookmarkFabIcon').innerText = allBookmarked ? 'bookmark_remove' : 'bookmark';
-    } else { fabs.classList.remove('visible'); }
+    } else { 
+        fabs.classList.remove('visible');
+    }
 }
 
 function getSelectedTextData() {
